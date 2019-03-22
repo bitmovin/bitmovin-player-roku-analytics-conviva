@@ -1,0 +1,22 @@
+<?rokuml version="1.0" encoding="utf-8" ?>
+
+<!--
+*  (c) 2016 Roku, Inc.  All content herein is protected by U.S.
+*  copyright and other applicable intellectual property laws and may
+*  not be copied without the express permission of Roku, Inc., which
+*  reserves all rights.  Reuse of any of this content for any purpose
+*  without the permission of Roku, Inc. is strictly prohibited.
+-->
+
+
+<!-- Task containing the content/ad playback loop. -->
+<component name="ConvivaTask" extends="Task">
+
+<interface>
+    <field id="video" type="node" />
+    <field id="convivaCustomEvent" type="assocarray" alwaysNotify="true" />
+</interface>
+
+<script type="text/brightscript" uri="pkg:/components/ConvivaTask.brs" />
+<script type="text/brightscript" uri="pkg:/components/Conviva_Roku_2.151.0.36960.brs" />
+</component>

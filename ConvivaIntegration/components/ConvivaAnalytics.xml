@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="ConvivaAnalytics" extends="Group" >
+  <interface>
+    <function name="setup" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/ConvivaAnalytics.brs" />
+</component>
