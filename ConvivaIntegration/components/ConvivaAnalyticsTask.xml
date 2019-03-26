@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="ConvivaAnalyticsTask" extends="Task" >
   <interface>
-    <field id="player" type="node" />
-    <field id="customerKey" type="string" />
     <field id="config" type="assocarray" />
+    <field id="customerKey" type="string" />
+    <field id="player" type="node" />
+    <function name="setContentMetaData" />
   </interface>
   <script type="text/brightscript" uri="pkg:/source/Conviva_Roku_2.151.0.36960.brs" />
   <script type="text/brightscript" uri="pkg:/components/ConvivaAnalyticsTask.brs" />
