@@ -30,6 +30,8 @@ sub monitorVideo()
         m.LivePass.setPlayerSeekStart(m.cSession, -1)
       else if (field = "state") and (data = "finished")
         livePass.cleanupSession(m.cSession)
+      else if (field = "state") and (data = "error")
+        livePass.reportError(m.cSession, "Error", m.livePass.StreamerError.SEVERITY_FATAL)
       end if
     end if
   end while
