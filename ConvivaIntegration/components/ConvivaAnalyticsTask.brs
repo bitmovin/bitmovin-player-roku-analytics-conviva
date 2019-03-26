@@ -58,12 +58,12 @@ end function
 sub setFieldObservers()
   m.top.player.observeField("seek", m.port)
 
-  m.video.observeField("streamInfo", m.port)
-  m.video.observeField("position", m.port)
-  m.video.observeField("state", m.port)
+  m.video.observeField("downloadedSegment", m.port)
   m.video.observeField("duration", m.port)
-  m.video.observeField("streamingSegment", m.port)
   m.video.observeField("errorCode", m.port)
   m.video.observeField("errorMsg", m.port)
-  m.video.observeField("downloadedSegment", m.port)
+  m.video.observeField("position", m.port)
+  m.video.observeField("state", m.port)
+  m.video.observeField("streamInfo", m.port)
+  m.video.observeField("streamingSegment", m.port)
 end sub
