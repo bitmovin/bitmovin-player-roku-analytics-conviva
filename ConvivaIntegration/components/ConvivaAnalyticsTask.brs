@@ -5,6 +5,7 @@ sub init()
   m.cSession = invalid
   m.DEBUG = false
   m.video = invalid
+  m.beforeFirstFrame = true
 end sub
 
 sub monitorVideo()
@@ -18,8 +19,6 @@ sub monitorVideo()
     m.LivePass = ConvivaLivePassInitWithSettings(apiKey)
   end if
 
-  createConvivaSession()
-
   while true
     msg = ConvivaWait(0, m.port, invalid)
     if type(msg) = "roSGNodeEvent"
@@ -28,6 +27,9 @@ sub monitorVideo()
       if m.DEBUG then print chr(10) + "New Event caught" + chr(10) + "Field: "; field + chr(10) +  "Data: "; data
       if field = "seek"
         m.LivePass.setPlayerSeekStart(m.cSession, -1)
+      else if field = "play"
+        createConvivaSession()
+        m.beforeFirstFrame = false
       else if (field = "state") and (data = "finished")
         livePass.cleanupSession(m.cSession)
         m.cSession = invalid
@@ -70,20 +72,22 @@ sub setFieldObservers()
 end sub
 
 sub setContentMetaData(contentMetadata)
+  metaData = ConvivaContentInfo()
   newContentMetadata = {}
-  ' if beforeFirstFrame
+
+  if metaData.assetName <> invalid then newContentMetadata.AddReplace("assetName", contentMetadata.assetName)
+  if m.beforeFirstFrame
     if contentMetadata.viewerid <> invalid then newContentMetadata.AddReplace("viewerid", contentMetadata.viewerid)
     if contentMetadata.streamType <> invalid then newContentMetadata.AddReplace("streamType", contentMetadata.streamType)
     if contentMetadata.playerName <> invalid then newContentMetadata.AddReplace("playerName", contentMetadata.playerName)
     if contentMetadata.contentLength <> invalid then newContentMetadata.AddReplace("contentLength", contentMetadata.contentLength)
     if contentMetadata.customTags <> invalid then newContentMetadata.AddReplace("customTags", contentMetadata.customTags)
-  ' end if
+  end if
   if contentMetadata.resource <> invalid then newContentMetadata.AddReplace("resource", contentMetadata.resource)
   if contentMetadata.streamUrl <> invalid then newContentMetadata.AddReplace("streamUrl", contentMetadata.streamUrl)
   if contentMetadata.bitrate <> invalid then newContentMetadata.AddReplace("bitrate", contentMetadata.bitrate)
   if contentMetadata.encodedFramerate <> invalid then newContentMetadata.AddReplace("encodedFramerate", contentMetadata.encodedFramerate)
 
-  metaData = ConvivaContentInfo()
   metaData.Append(newContentMetadata)
   m.livePass.updateContentMetadata(m.cSession, metaData)
 end sub
