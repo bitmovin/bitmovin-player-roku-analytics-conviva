@@ -6,11 +6,15 @@ sub init()
   m.DEBUG = false
   m.video = invalid
   m.playbackStarted = false
+
+  m.contentMetadataBuilder = CreateObject("roSGNode", "ContentMetadataBuilder")
 end sub
 
 sub internalInit()
-  m.DEBUG = m.top.config.debuggingEnabled
   debugLog("[ConvivaAnalytics] setting up")
+
+  m.video = m.top.player.findNode("MainVideo")
+  m.DEBUG = m.top.config.debuggingEnabled
 
   apiKey = m.top.customerKey
   if m.top.config.gatewayUrl <> invalid
@@ -21,9 +25,17 @@ sub internalInit()
     m.LivePass = ConvivaLivePassInitWithSettings(apiKey)
   end if
 
-  m.video = m.top.player.findNode("MainVideo")
   registePlayerEvents()
   monitorVideo()
+end sub
+
+sub updateContentMetadata(metadataOverrides)
+  m.contentMetadataBuilder.callFunc("setOverrides", metadataOverrides)
+
+  if isSessionActive()
+    buildContentMetadata()
+    updateSession()
+  end if
 end sub
 
 sub monitorVideo()
@@ -86,10 +98,10 @@ sub onSeek()
 end sub
 
 sub createConvivaSession()
-  contentInfo = fetchContentInfo()
-
   notificationPeriod = 1.0
-  m.cSession = m.LivePass.createSession(true, contentInfo, notificationPeriod, m.video)
+  buildContentMetadata()
+  m.cSession = m.LivePass.createSession(true, m.contentMetadataBuilder.callFunc("build"), notificationPeriod, m.video)
+
   m.video.notificationinterval = notificationPeriod
   debugLog("[ConvivaAnalytics] start session")
 end sub
@@ -103,20 +115,53 @@ function isSessionActive()
   return m.cSession <> invalid
 end function
 
-function fetchContentInfo()
-  contentInfo = ConvivaContentInfo()
-  contentInfo.streamUrl = m.video.content.url
-  contentInfo.assetName = m.video.content.title
-  contentInfo.isLive = m.video.content.live
-  contentInfo.playerName = "BitmovinPlayer"
-  contentInfo.viewerid = "1234" ' TODO: replace with a proper id or a generated guid
-  contentInfo.duration = m.video.duration
-  return contentInfo
-end function
+sub buildContentMetadata()
+  m.contentMetadataBuilder.callFunc("setDuration", m.video.duration)
+  m.contentMetadataBuilder.callFunc("setStreamType", m.top.player.callFunc("isLive"))
+
+  internalCustomTags = {
+    integrationVersion: "1.0.0"
+  }
+
+  config = m.top.player.callFunc("getConfig")
+  if config.playback <> invalid and config.playback.autoplay <> invalid
+    internalCustomTags.autoplay = ToString(config.playback.autoplay)
+  end if
+
+  if config.adaptation <> invalid and config.adaptation.preload <> invalid
+    internalCustomTags.preload = ToString(config.adaptation.preload)
+  end if
+
+  m.contentMetadataBuilder.callFunc("setCustom", internalCustomTags)
+
+  source = config.source
+  if source <> invalid
+    buildSourceRelatedMetadata(source)
+  end if
+
+end sub
+
+sub buildSourceRelatedMetadata(source)
+  if source.title <> invalid
+    m.contentMetadataBuilder.callFunc("setAssetName", source.title)
+  else
+    m.contentMetadataBuilder.callFunc("setAssetName", "Untitled (no source.title set)")
+  end if
+
+  m.contentMetadataBuilder.callFunc("setViewerId", m.contentMetadataBuilder.callFunc("getViewerId"))
+  m.contentMetadataBuilder.callFunc("setStreamUrl", m.video.content.url)
+end sub
+
+sub updateSession()
+  if not isSessionActive() then return
+
+  m.LivePass.updateContentMetadata(m.cSession, m.contentMetadataBuilder.callFunc("build"))
+end sub
 
 sub registePlayerEvents()
   ' Passing everything to m.port so that conviva can intercept and track them
   m.top.player.observeField(m.top.player.BitmovinFields.SEEK, m.port)
+  ' TODO: WE NEED TO CHECK PLAY HERE in case of autoplay we have a race condition that we miss the play event
   m.top.player.observeField(m.top.player.BitmovinFields.PLAY, m.port)
 
   ' Auto collected by conviva within ConvivaWait.
@@ -128,27 +173,6 @@ sub registePlayerEvents()
   m.video.observeField("errorCode", m.port)
   m.video.observeField("errorMsg", m.port)
   m.video.observeField("downloadedSegment", m.port)
-end sub
-
-sub setContentMetaData(contentMetadata)
-  metaData = ConvivaContentInfo()
-  newContentMetadata = {}
-
-  if metaData.assetName <> invalid then newContentMetadata.AddReplace("assetName", contentMetadata.assetName)
-  if not m.playbackStarted
-    if contentMetadata.viewerid <> invalid then newContentMetadata.AddReplace("viewerid", contentMetadata.viewerid)
-    if contentMetadata.streamType <> invalid then newContentMetadata.AddReplace("streamType", contentMetadata.streamType)
-    if contentMetadata.playerName <> invalid then newContentMetadata.AddReplace("playerName", contentMetadata.playerName)
-    if contentMetadata.contentLength <> invalid then newContentMetadata.AddReplace("contentLength", contentMetadata.contentLength)
-    if contentMetadata.customTags <> invalid then newContentMetadata.AddReplace("customTags", contentMetadata.customTags)
-  end if
-  if contentMetadata.resource <> invalid then newContentMetadata.AddReplace("resource", contentMetadata.resource)
-  if contentMetadata.streamUrl <> invalid then newContentMetadata.AddReplace("streamUrl", contentMetadata.streamUrl)
-  if contentMetadata.bitrate <> invalid then newContentMetadata.AddReplace("bitrate", contentMetadata.bitrate)
-  if contentMetadata.encodedFramerate <> invalid then newContentMetadata.AddReplace("encodedFramerate", contentMetadata.encodedFramerate)
-
-  metaData.Append(newContentMetadata)
-  m.livePass.updateContentMetadata(m.cSession, metaData)
 end sub
 
 sub debugLog(message as String)

@@ -2,6 +2,7 @@
 <component name="ConvivaAnalytics" extends="Group" >
   <interface>
     <function name="setup" />
+    <function name="updateContentMetadata" />
   </interface>
   <script type="text/brightscript" uri="pkg:/components/ConvivaAnalytics.brs" />
 </component>
