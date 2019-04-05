@@ -40,6 +40,14 @@ sub onLoadStatusChanged()
       gatewayUrl : "https://bitmovin-test.testonly.conviva.com"
     }
     m.convivaAnalytics.callFunc("setup", player, customerKey, config)
+    contentMetadataOverrides = {
+      playerName: "Conviva Integration Test Channel",
+      viewerId: "MyAwesomeViewerId",
+      tags: {
+        CustomKey: "CustomValue"
+      }
+    }
+    m.convivaAnalytics.callFunc("updateContentMetadata", contentMetadataOverrides)
 
     m.bitmovinPlayer.callFunc(m.BitmovinFunctions.SETUP, m.playerConfig)
   end if
