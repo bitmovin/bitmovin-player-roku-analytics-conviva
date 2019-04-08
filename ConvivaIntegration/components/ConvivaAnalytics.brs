@@ -21,3 +21,27 @@ sub updateContentMetadata(contentMetadataOverrides)
     contentMetadata: contentMetadataOverrides
   }
 end sub
+
+' Sends a custom application-level event to Conviva's Player Insight. An application-level event can always
+' be sent and is not tied to a specific video.
+' @param {String} name - arbitrary event name
+' @param {Object} attributes - a string-to-string dictionary object with arbitrary attribute keys and values
+sub sendCustomApplicationEvent(name, attributes)
+  m.convivaTask.invoke = {
+    method: "sendCustomApplicationEvent",
+    eventName: name,
+    attributes: attributes
+  }
+end sub
+
+' Sends a custom playback-level event to Conviva's Player Insight. A playback-level event can only be sent
+' during an active video session.
+' @param {String} name - arbitrary event name
+' @param {Object} attributes - a string-to-string dictionary object with arbitrary attribute keys and values
+sub sendCustomPlaybackEvent(name, attributes)
+  m.convivaTask.invoke = {
+    method: "sendCustomPlaybackEvent",
+    eventName: name,
+    attributes: attributes
+  }
+end sub
