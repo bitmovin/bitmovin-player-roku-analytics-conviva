@@ -67,6 +67,8 @@ sub invoke(data)
 
   if data.method = "updateContentMetadata"
     updateContentMetadata(data.contentMetadata)
+  else if data.method = "endSession"
+    endSession()
   end if
 end sub
 
