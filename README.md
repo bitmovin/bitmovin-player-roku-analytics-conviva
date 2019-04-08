@@ -1,5 +1,12 @@
 # Bitmovin Player Conviva Analytics Integration
 
+## Limitations
+Currently we don't support ad tracking at all.
+
+## Compatibility
+**This version of the Conviva Analytics Integration works only with Player Version >= 1.4.x.
+The recommended version of the Conviva SDK is 2.151.0.36978.**
+
 ## Getting Started
 
 1. Clone Git repository
