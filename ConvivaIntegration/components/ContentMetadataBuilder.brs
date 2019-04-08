@@ -13,7 +13,7 @@ sub setOverrides(newValue)
   m.metadataOverrides = newValue
 end sub
 
-sub setPlayerSeekStart(value)
+sub setPlaybackStarted(value)
   m.playbackStarted = value
 end sub
 
