@@ -27,7 +27,7 @@ end sub
 '
 ' @param {String} message - Message which will be send to conviva
 ' @param {Boolean} isFatal - Flag if the error is fatal or just a warning
-' @param {Boolean} endSession - flag if session should be closed after reporting the deficiency (Default: true)
+' @param {Boolean} [endSession=true] - Flag if the session should be closed after reporting the deficiency
 sub reportPlaybackDeficiency(message, isFatal, endSession = true)
   m.convivaTask.invoke = {
     method: "reportPlaybackDeficiency",
