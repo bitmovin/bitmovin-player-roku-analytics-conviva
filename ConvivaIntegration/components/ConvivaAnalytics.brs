@@ -21,3 +21,12 @@ sub updateContentMetadata(contentMetadataOverrides)
     contentMetadata: contentMetadataOverrides
   }
 end sub
+
+sub reportPlaybackDeficiency(message, isFatal, endSession = true)
+  m.convivaTask.invoke = {
+    method: "reportPlaybackDeficiency",
+    message: message,
+    isFatal: isFatal,
+    endSession: endSession
+  }
+end sub
