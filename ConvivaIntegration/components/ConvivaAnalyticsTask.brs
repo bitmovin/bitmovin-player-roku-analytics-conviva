@@ -34,9 +34,9 @@ sub monitorVideo()
       field = msg.getField()
       data = msg.getData()
 
-      if field = "seek"
+      if field = m.top.player.BitmovinFields.SEEK
         onSeek()
-      else if field = "play"
+      else if field = m.top.player.BitmovinFields.PLAY
         onPlay()
       else if field = "state"
         onStateChanged(data)
