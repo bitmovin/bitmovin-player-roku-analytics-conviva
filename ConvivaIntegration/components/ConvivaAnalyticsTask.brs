@@ -67,6 +67,8 @@ sub invoke(data)
 
   if data.method = "updateContentMetadata"
     updateContentMetadata(data.contentMetadata)
+  else if data.method = "reportPlaybackDeficiency"
+    reportPlaybackDeficiency(data.message, data.isFatal, data.endSession)
   end if
 end sub
 
@@ -119,8 +121,26 @@ sub createConvivaSession()
 end sub
 
 sub endSession()
+  debugLog("[ConvivaAnalytics] closing session")
   m.livePass.cleanupSession(m.cSession)
   m.cSession = invalid
+end sub
+
+' Sends a custom deficiency event during playback to Conviva's Player Insight. If no session is active it will NOT
+' create one.
+'
+' @param {String} message - Message which will be send to conviva
+' @param {Boolean} isFatal - Flag if the error is fatal or just a warning
+' @param {Boolean} endSession - flag if session should be closed after reporting the deficiency (Default: true)
+sub reportPlaybackDeficiency(message, isFatal, closeSession = true)
+  if not isSessionActive() then return
+
+  debugLog("[ConvivaAnalytics] reporting deficiency")
+  m.livePass.reportError(m.cSession, message, isFatal)
+
+  if closeSession
+    endSession()
+  end if
 end sub
 
 function isSessionActive()
