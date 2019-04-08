@@ -5,7 +5,6 @@ sub init()
   m.cSession = invalid
   m.DEBUG = false
   m.video = invalid
-  m.playbackStarted = false
 
   m.contentMetadataBuilder = CreateObject("roSGNode", "ContentMetadataBuilder")
 end sub
@@ -101,7 +100,7 @@ end sub
 
 sub onPlaying()
   debugLog("[Player Event] onPlaying")
-  m.playbackStarted = true
+  m.contentMetadataBuilder.callFunc("setPlaybackStarted", true)
 end sub
 
 sub onSeek()
@@ -121,6 +120,8 @@ end sub
 sub endSession()
   m.livePass.cleanupSession(m.cSession)
   m.cSession = invalid
+
+  m.contentMetadataBuilder.callFunc("reset")
 end sub
 
 function isSessionActive()
