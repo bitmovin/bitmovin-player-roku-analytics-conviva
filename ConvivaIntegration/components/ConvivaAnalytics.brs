@@ -22,11 +22,10 @@ sub updateContentMetadata(contentMetadataOverrides)
   }
 end sub
 
-
 ' Ends the current conviva tracking session.
-' Results in a no-opt if there is no active session.
+' Results in a no-op if there is no active session.
 '
-' Warning: The integration can only be validated without external session managing. So when using this method we can
+' Warning: The integration can only be validated without external session management. So when using this method we can
 ' no longer ensure that the session is managed at the correct time.
 sub endSession()
   m.convivaTask.invoke = {
