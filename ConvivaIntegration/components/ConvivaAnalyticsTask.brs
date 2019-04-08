@@ -188,6 +188,14 @@ sub registerExternalManagingEvents()
   ' Since we are in a task, we can't use callFunc to invoke public functions.
   ' Instead we need to use observeField to communicate with the task.
   m.top.observeField("invoke", m.port)
+
+  ' We have a race condition when some external methods are called right after initializing the ConvivaAnalytics, such
+  ' as updateContentMetadata right after initializing.
+  ' In this case we need to check if we missed a invoke and call it.
+  ' Possible Issue: If there are more than one we only able to track the last one as it will be overridden.
+  if m.top.invoke <> invalid
+    invoke(m.top.invoke)
+  end if
 end sub
 
 sub registerConvivaEvents()
