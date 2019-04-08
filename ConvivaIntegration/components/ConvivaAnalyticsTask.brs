@@ -33,7 +33,6 @@ sub monitorVideo()
     if type(msg) = "roSGNodeEvent"
       field = msg.getField()
       data = msg.getData()
-      ' if m.DEBUG then print chr(10) + "New Event caught" + chr(10) + "Field: "; field + chr(10) +  "Data: "; data
 
       if field = "seek"
         onSeek()
