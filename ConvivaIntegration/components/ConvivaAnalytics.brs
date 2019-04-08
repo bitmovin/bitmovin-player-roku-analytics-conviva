@@ -16,5 +16,8 @@ sub setup(player, customerKey, config)
 end sub
 
 sub updateContentMetadata(contentMetadataOverrides)
-  m.convivaTask.callFunc("updateContentMetadata", contentMetadataOverrides)
+  m.convivaTask.invoke = {
+    method: "updateContentMetadata",
+    contentMetadata: contentMetadataOverrides
+  }
 end sub

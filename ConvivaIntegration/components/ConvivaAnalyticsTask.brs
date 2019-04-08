@@ -25,7 +25,7 @@ sub internalInit()
     m.LivePass = ConvivaLivePassInitWithSettings(apiKey)
   end if
 
-  registePlayerEvents()
+  registerEvents()
   monitorVideo()
 end sub
 
@@ -53,9 +53,21 @@ sub monitorVideo()
         onPlay()
       else if field = "state"
         onStateChanged(data)
+      else if field = "invoke"
+        invoke(data)
       end if
     end if
   end while
+end sub
+
+' We need to use observeField for all external calls into this task.
+' For more information see #registerExternalManagingEvents
+sub invoke(data)
+  debugLog("[ConvivaAnalytics] invoke external: " + data.method)
+
+  if data.method = "updateContentMetadata"
+    updateContentMetadata(data.contentMetadata)
+  end if
 end sub
 
 sub onStateChanged(state)
@@ -158,12 +170,26 @@ sub updateSession()
   m.LivePass.updateContentMetadata(m.cSession, m.contentMetadataBuilder.callFunc("build"))
 end sub
 
-sub registePlayerEvents()
+sub registerEvents()
+  registerPlayerEvents()
+  registerExternalManagingEvents()
+  registerConvivaEvents()
+end sub
+
+sub registerPlayerEvents()
   ' Passing everything to m.port so that conviva can intercept and track them
   m.top.player.observeField(m.top.player.BitmovinFields.SEEK, m.port)
   ' TODO: WE NEED TO CHECK PLAY HERE in case of autoplay we have a race condition that we miss the play event
   m.top.player.observeField(m.top.player.BitmovinFields.PLAY, m.port)
+end sub
 
+sub registerExternalManagingEvents()
+  ' Since we are in a task, we can't use callFunc to invoke public functions.
+  ' Instead we need to use observeField to communicate with the task.
+  m.top.observeField("invoke", m.port)
+end sub
+
+sub registerConvivaEvents()
   ' Auto collected by conviva within ConvivaWait.
   m.video.observeField("streamInfo", m.port)
   m.video.observeField("state", m.port)
