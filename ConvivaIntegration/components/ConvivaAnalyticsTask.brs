@@ -29,6 +29,19 @@ sub internalInit()
   monitorVideo()
 end sub
 
+sub sendCustomApplicationEvent(eventName, attributes)
+  m.livePass.sendEvent(eventName, attributes)
+end sub
+
+sub sendCustomPlaybackEvent(eventName, attributes)
+  if not isSessionActive()
+    debugLog("Cannot send playback event, no active monitoring session")
+    return
+  end if
+
+  m.livePass.sendSessionEvent(m.cSession, eventName, attributes)
+end sub
+
 sub updateContentMetadata(metadataOverrides)
   m.contentMetadataBuilder.callFunc("setOverrides", metadataOverrides)
 
@@ -67,6 +80,10 @@ sub invoke(data)
 
   if data.method = "updateContentMetadata"
     updateContentMetadata(data.contentMetadata)
+  else if data.method = "sendCustomApplicationEvent"
+    sendCustomApplicationEvent(data.eventName, data.attributes)
+  else if data.method = "sendCustomPlaybackEvent"
+    sendCustomPlaybackEvent(data.eventName, data.attributes)
   end if
 end sub
 
