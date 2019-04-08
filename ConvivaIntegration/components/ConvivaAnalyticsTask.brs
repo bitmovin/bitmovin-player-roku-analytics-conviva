@@ -87,9 +87,8 @@ end sub
 sub createConvivaSession()
   contentInfo = fetchContentInfo()
 
-  notificationPeriod = 1.0
+  notificationPeriod = m.video.notificationinterval
   m.cSession = m.LivePass.createSession(true, contentInfo, notificationPeriod, m.video)
-  m.video.notificationinterval = notificationPeriod
   debugLog("[ConvivaAnalytics] start session")
 end sub
 
