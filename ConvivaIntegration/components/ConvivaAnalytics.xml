@@ -3,6 +3,7 @@
   <interface>
     <function name="setup" />
     <function name="updateContentMetadata" />
+    <function name="endSession" />
     <function name="reportPlaybackDeficiency" />
   </interface>
   <script type="text/brightscript" uri="pkg:/components/ConvivaAnalytics.brs" />

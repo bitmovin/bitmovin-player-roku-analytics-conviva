@@ -65,6 +65,8 @@ sub invoke(data)
 
   if data.method = "updateContentMetadata"
     updateContentMetadata(data.contentMetadata)
+  else if data.method = "endSession"
+    endSession()
   else if data.method = "reportPlaybackDeficiency"
     reportPlaybackDeficiency(data.message, data.isFatal, data.endSession)
   end if
