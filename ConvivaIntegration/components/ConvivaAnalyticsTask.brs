@@ -210,8 +210,14 @@ end sub
 sub registerPlayerEvents()
   ' Passing everything to m.port so that conviva can intercept and track them
   m.top.player.observeField(m.top.player.BitmovinFields.SEEK, m.port)
-  ' TODO: WE NEED TO CHECK PLAY HERE in case of autoplay we have a race condition that we miss the play event
   m.top.player.observeField(m.top.player.BitmovinFields.PLAY, m.port)
+
+  ' In case of autoplay we miss the inital play callback.
+  ' See #registerExternalManagingEvents for more details.
+  ' This does not affect VST.
+  if m.top.player[m.top.player.BitmovinFields.PLAY] = true
+    onPlay()
+  end if
 end sub
 
 sub registerExternalManagingEvents()
