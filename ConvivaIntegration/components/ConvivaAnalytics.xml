@@ -3,6 +3,8 @@
   <interface>
     <function name="setup" />
     <function name="updateContentMetadata" />
+    <function name="endSession" />
+    <function name="reportPlaybackDeficiency" />
     <function name="sendCustomApplicationEvent" />
     <function name="sendCustomPlaybackEvent" />
   </interface>
