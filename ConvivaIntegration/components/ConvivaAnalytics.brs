@@ -1,4 +1,7 @@
 sub init()
+  m.InvokeMethods = {
+    UPDATE_CONTENT_METADATA: "updateContentMetadata"
+  }
 end sub
 
 sub setup(player, customerKey, convivaConfig)
@@ -17,7 +20,7 @@ end sub
 
 sub updateContentMetadata(contentMetadataOverrides)
   m.convivaTask.invoke = {
-    method: "updateContentMetadata",
+    method: m.InvokeMethods.UPDATE_CONTENT_METADATA,
     contentMetadata: contentMetadataOverrides
   }
 end sub
