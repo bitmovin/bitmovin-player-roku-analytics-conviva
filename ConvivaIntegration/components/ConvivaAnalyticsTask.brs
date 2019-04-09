@@ -65,6 +65,8 @@ sub invoke(data)
 
   if data.method = "updateContentMetadata"
     updateContentMetadata(data.contentMetadata)
+  else if data.method = "reportPlaybackDeficiency"
+    reportPlaybackDeficiency(data.message, data.isFatal, data.endSession)
   end if
 end sub
 
@@ -115,10 +117,22 @@ sub createConvivaSession()
 end sub
 
 sub endSession()
+  debugLog("[ConvivaAnalytics] closing session")
   m.livePass.cleanupSession(m.cSession)
   m.cSession = invalid
 
   m.contentMetadataBuilder.callFunc("reset")
+end sub
+
+sub reportPlaybackDeficiency(message, isFatal, closeSession = true)
+  if not isSessionActive() then return
+
+  debugLog("[ConvivaAnalytics] reporting deficiency")
+  m.livePass.reportError(m.cSession, message, isFatal)
+
+  if closeSession
+    endSession()
+  end if
 end sub
 
 function isSessionActive()
