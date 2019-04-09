@@ -8,7 +8,7 @@
     <!-- external fields to invoking tracking -->
     <field id="invoke" type="assocarray" />
   </interface>
-  <script type="text/brightscript" uri="pkg:/conviva/Conviva_Roku.brs" />
+  <script type="text/brightscript" uri="pkg:/source/conviva/Conviva_Roku.brs" />
   <script type="text/brightscript" uri="pkg:/components/ConvivaAnalyticsTask.brs" />
   <script type="text/brightscript" uri="pkg:/components/helper/ToString.brs" />
 </component>
