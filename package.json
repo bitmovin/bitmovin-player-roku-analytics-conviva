@@ -18,8 +18,8 @@
     "ensure_dist_folder": "mkdir -p ./dist",
     "watch": "npm-watch build",
     "serve": "npm run ensure_dist_folder && npm-run-all --parallel watch server",
-    "server": "http-server ./dist",
-    "build": "npm run ensure_dist_folder && bestzip ./dist/bitmovin-player-conviva-analytics.zip ./ConvivaIntegration/components/*"
+    "server": "http-server ./dist -p 8088",
+    "build": "npm run ensure_dist_folder && bestzip ./dist/bitmovin-player-conviva-analytics.zip ./ConvivaIntegration/*"
   },
   "devDependencies": {
     "bestzip": "^2.1.2",
