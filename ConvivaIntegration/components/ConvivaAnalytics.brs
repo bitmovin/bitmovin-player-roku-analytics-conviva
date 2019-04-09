@@ -2,7 +2,9 @@ sub init()
   m.InvokeMethods = {
     UPDATE_CONTENT_METADATA: "updateContentMetadata",
     END_SESSION: "endSEssion",
-    REPORT_PLAYBACK_DEFICIENCY: "reportPlaybackDeficiency"
+    REPORT_PLAYBACK_DEFICIENCY: "reportPlaybackDeficiency",
+    SEND_CUSTOM_APPLICATION_EVENT: "sendCustomApplicationEvent",
+    SEND_CUSTOM_PLAYBACK_EVENT: "sendCustomPlaybackEvent"
   }
 end sub
 
@@ -24,6 +26,30 @@ sub updateContentMetadata(contentMetadataOverrides)
   m.convivaTask.invoke = {
     method: m.InvokeMethods.UPDATE_CONTENT_METADATA,
     contentMetadata: contentMetadataOverrides
+  }
+end sub
+
+' Sends a custom application-level event to Conviva's Player Insight. An application-level event can always
+' be sent and is not tied to a specific video.
+' @param {String} name - Arbitrary event name
+' @param {Object} attributes - A string-to-string dictionary object with arbitrary attribute keys and values
+sub sendCustomApplicationEvent(name, attributes)
+  m.convivaTask.invoke = {
+    method: m.InvokeMethods.SEND_CUSTOM_APPLICATION_EVENT,
+    eventName: name,
+    attributes: attributes
+  }
+end sub
+
+' Sends a custom playback-level event to Conviva's Player Insight. A playback-level event can only be sent
+' during an active video session.
+' @param {String} name - Arbitrary event name
+' @param {Object} attributes - A string-to-string dictionary object with arbitrary attribute keys and values
+sub sendCustomPlaybackEvent(name, attributes)
+  m.convivaTask.invoke = {
+    method: m.InvokeMethods.SEND_CUSTOM_PLAYBACK_EVENT,
+    eventName: name,
+    attributes: attributes
   }
 end sub
 
