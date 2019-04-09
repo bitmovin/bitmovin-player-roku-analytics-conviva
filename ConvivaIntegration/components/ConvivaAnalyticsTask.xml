@@ -4,8 +4,11 @@
     <field id="config" type="assocarray" />
     <field id="customerKey" type="string" />
     <field id="player" type="node" />
-    <function name="setContentMetaData" />
+
+    <!-- external fields to invoking tracking -->
+    <field id="invoke" type="assocarray" />
   </interface>
   <script type="text/brightscript" uri="pkg:/source/Conviva_Roku_2.151.0.36960.brs" />
   <script type="text/brightscript" uri="pkg:/components/ConvivaAnalyticsTask.brs" />
+  <script type="text/brightscript" uri="pkg:/components/helper/ToString.brs" />
 </component>
