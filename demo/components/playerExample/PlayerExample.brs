@@ -13,7 +13,7 @@ sub init()
   ' Do the same for the conviva integration
   m.conviva = CreateObject("roSGNode", "ComponentLibrary")
   m.conviva.id = "conviva"
-  m.conviva.uri = "http://192.168.1.48:8080/roku/player.zip"
+  m.conviva.uri = "http://YOUR_IP:8088/bitmovin-player-conviva-analytics.zip"
   m.top.appendChild(m.conviva)
   m.conviva.observeField("loadStatus", "onLoadStatusChanged")
 end sub
