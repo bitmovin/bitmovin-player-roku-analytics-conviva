@@ -17,8 +17,8 @@
   "scripts": {
     "watch": "npm-watch build",
     "serve": "npm-run-all --parallel watch server",
-    "server": "http-server ./ConvivaIntegration/dist",
-    "build": "bestzip ./ConvivaIntegration/dist/bitmovin-player-conviva-analytics.zip ./ConvivaIntegration/components/*"
+    "server": "http-server ./dist",
+    "build": "bestzip ./dist/bitmovin-player-conviva-analytics.zip ./ConvivaIntegration/components/*"
   },
   "devDependencies": {
     "bestzip": "^2.1.2",
