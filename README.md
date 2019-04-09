@@ -10,6 +10,15 @@ The recommended version of the Conviva SDK is 2.151.0.36978.**
 ## Getting Started
 1. Clone Git repository
 
+## Running the example
+
+1. Run `npm i` to install dependencies
+2. Ensure that you are in the same network as the roku device
+3. Run `npm run serve`
+  _This will bundle the library into a zip (with auto reloading after changes) and serve it via a node server_
+4. Enter the IP of your machine in [PlayerExample.brs](./demo/components/playerExample/PlayerExample.brs)
+5. Deploy the demo to the roku device
+
 ## Usage
 
 ### Use as Component Library
@@ -17,8 +26,8 @@ The recommended version of the Conviva SDK is 2.151.0.36978.**
 1. Fetch conviva SDK
   - Download conviva sdk source file
   - Rename to `Conviva_Roku.brs`
-  - But it into `./ConvivaIntegration/source`
-2. run `npm install & npm run build`
+  - But it into `./ConvivaIntegration/source/conviva`
+2. run `npm install && npm run build`
 3. Include the created ZIP from the `./dist` folder into your channel as component library
   ```Brightscript
   m.conviva = CreateObject("roSGNode", "ComponentLibrary")
@@ -28,26 +37,34 @@ The recommended version of the Conviva SDK is 2.151.0.36978.**
   m.conviva.observeField("loadStatus", "YOUR_CALLBACK") ' Ensure the library is loaded
   ```
 
+4. Create a instance of `ConvivaAnalytics`
+  ```Brightscript
+  m.convivaAnalytics = CreateObject("roSGNode", "bitmovinPlayerIntegrationConviva:ConvivaAnalytics")
+  ```
+
 ### Use with Source Code
 
 1. Fetch conviva SDK
   - Download conviva sdk source file
   - Rename to `Conviva_Roku.brs`
-  - Create a folder in your root folder called `conviva`
-  - But the `Conviva_Roku.brs` into the new created `./conviva` folder. _If you want to create a different folder structure you need to change the import of the `ConvivaSDK` within the `ConvivaAnalyticsTask.xml`_
-2. Copy following files to your project:
+  - Create a folder in your source folder called `conviva`
+  - But the `Conviva_Roku.brs` into the new created `./source/conviva` folder. _If you want to create a different folder structure you need to change the import of the `ConvivaSDK` within the `ConvivaAnalyticsTask.xml`_
+2. Copy following files to your components folder:
   - `./ConvivaIntegration/components/ConvivaAnalytics.brs`
   - `./ConvivaIntegration/components/ConvivaAnalytics.xml`
   - `./ConvivaIntegration/components/ConvivaAnalyticsTask.brs`
   - `./ConvivaIntegration/components/ConvivaAnalyticsTask.xml`
+3. Create a instance of `ConvivaAnalytics`
+  ```Brightscript
+  m.convivaAnalytics = CreateObject("roSGNode", "ConvivaAnalytics")
+  ```
 
-### Create an instance
+### Setup
 
-1. Create a instance of `ConvivaAnalytics`
+1. Setting up the instance of `ConvivaAnalytics`
 
   _Ensure that the bitmovinPlayer exists here as well_
   ```Brightscript
-  m.convivaAnalytics = CreateObject("roSGNode", "conviva:ConvivaAnalytics") 'A ConvivaAnalytics instance is always tied to one player instance
   customerKey = "YOUR_CUSTOMER_KEX"
   config = {
     debuggingEnabled : true
