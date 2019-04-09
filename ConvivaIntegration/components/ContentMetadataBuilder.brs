@@ -1,8 +1,5 @@
 sub init()
-  m.contentMetadata = ConvivaContentInfo()
-  m.metadataOverrides = ConvivaContentInfo()
-  m.metadata = ConvivaContentInfo()
-  m.playbackStarted = false
+  reset()
 end sub
 
 sub setOverrides(newValue)
