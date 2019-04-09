@@ -5,7 +5,6 @@ sub init()
   m.cSession = invalid
   m.DEBUG = false
   m.video = invalid
-  m.playbackStarted = false
 
   m.contentMetadataBuilder = CreateObject("roSGNode", "ContentMetadataBuilder")
 end sub
@@ -58,11 +57,10 @@ sub monitorVideo()
     if type(msg) = "roSGNodeEvent"
       field = msg.getField()
       data = msg.getData()
-      ' if m.DEBUG then print chr(10) + "New Event caught" + chr(10) + "Field: "; field + chr(10) +  "Data: "; data
 
-      if field = "seek"
+      if field = m.top.player.BitmovinFields.SEEK
         onSeek()
-      else if field = "play"
+      else if field = m.top.player.BitmovinFields.PLAY
         onPlay()
       else if field = "state"
         onStateChanged(data)
@@ -80,6 +78,10 @@ sub invoke(data)
 
   if data.method = "updateContentMetadata"
     updateContentMetadata(data.contentMetadata)
+  else if data.method = "endSession"
+    endSession()
+  else if data.method = "reportPlaybackDeficiency"
+    reportPlaybackDeficiency(data.message, data.isFatal, data.endSession)
   else if data.method = "sendCustomApplicationEvent"
     sendCustomApplicationEvent(data.eventName, data.attributes)
   else if data.method = "sendCustomPlaybackEvent"
@@ -118,7 +120,7 @@ end sub
 
 sub onPlaying()
   debugLog("[Player Event] onPlaying")
-  m.playbackStarted = true
+  m.contentMetadataBuilder.callFunc("setPlaybackStarted", true)
 end sub
 
 sub onSeek()
@@ -127,17 +129,29 @@ sub onSeek()
 end sub
 
 sub createConvivaSession()
-  notificationPeriod = 1.0
+  notificationPeriod = m.video.notificationinterval
   buildContentMetadata()
   m.cSession = m.LivePass.createSession(true, m.contentMetadataBuilder.callFunc("build"), notificationPeriod, m.video)
-
-  m.video.notificationinterval = notificationPeriod
   debugLog("[ConvivaAnalytics] start session")
 end sub
 
 sub endSession()
+  debugLog("[ConvivaAnalytics] closing session")
   m.livePass.cleanupSession(m.cSession)
   m.cSession = invalid
+
+  m.contentMetadataBuilder.callFunc("reset")
+end sub
+
+sub reportPlaybackDeficiency(message, isFatal, closeSession = true)
+  if not isSessionActive() then return
+
+  debugLog("[ConvivaAnalytics] reporting deficiency")
+  m.livePass.reportError(m.cSession, message, isFatal)
+
+  if closeSession
+    endSession()
+  end if
 end sub
 
 function isSessionActive()
@@ -204,6 +218,14 @@ sub registerExternalManagingEvents()
   ' Since we are in a task, we can't use callFunc to invoke public functions.
   ' Instead we need to use observeField to communicate with the task.
   m.top.observeField("invoke", m.port)
+
+  ' We have a race condition when some external methods are called right after initializing the ConvivaAnalytics, such
+  ' as updateContentMetadata right after initializing.
+  ' In this case we need to check if we missed a invoke and call it.
+  ' Possible Issue: If there are more than one we only able to track the last one as it will be overridden.
+  if m.top.invoke <> invalid
+    invoke(m.top.invoke)
+  end if
 end sub
 
 sub registerConvivaEvents()
