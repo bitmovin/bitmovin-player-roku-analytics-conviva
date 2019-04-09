@@ -4,7 +4,7 @@ sub init()
   ' Creates the ComponentLibrary (the BitmovinPlayerSDK in this case)
   m.bitmovinPlayerSDK = CreateObject("roSGNode", "ComponentLibrary")
   m.bitmovinPlayerSDK.id = "BitmovinPlayerSDK"
-  m.bitmovinPlayerSDK.uri = "https://cdn.bitmovin.com/player/roku/1/bitmovinplayer.zip"
+  m.bitmovinPlayerSDK.uri = "https://cdn.bitmovin.com/player/roku/1.4.0-b.2/bitmovinplayer.zip"
 
   ' Adding the ComponentLibrary node to the scene will start the download of the library
   m.top.appendChild(m.bitmovinPlayerSDK)
@@ -40,6 +40,14 @@ sub onLoadStatusChanged()
       gatewayUrl : "https://bitmovin-test.testonly.conviva.com"
     }
     m.convivaAnalytics.callFunc("setup", player, customerKey, config)
+    contentMetadataOverrides = {
+      playerName: "Conviva Integration Test Channel",
+      viewerId: "MyAwesomeViewerId",
+      tags: {
+        CustomKey: "CustomValue"
+      }
+    }
+    m.convivaAnalytics.callFunc("updateContentMetadata", contentMetadataOverrides)
 
     m.bitmovinPlayer.callFunc(m.BitmovinFunctions.SETUP, m.playerConfig)
   end if
