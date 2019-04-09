@@ -44,11 +44,10 @@ sub monitorVideo()
     if type(msg) = "roSGNodeEvent"
       field = msg.getField()
       data = msg.getData()
-      ' if m.DEBUG then print chr(10) + "New Event caught" + chr(10) + "Field: "; field + chr(10) +  "Data: "; data
 
-      if field = "seek"
+      if field = m.top.player.BitmovinFields.SEEK
         onSeek()
-      else if field = "play"
+      else if field = m.top.player.BitmovinFields.PLAY
         onPlay()
       else if field = "state"
         onStateChanged(data)
@@ -109,11 +108,9 @@ sub onSeek()
 end sub
 
 sub createConvivaSession()
-  notificationPeriod = 1.0
+  notificationPeriod = m.video.notificationinterval
   buildContentMetadata()
   m.cSession = m.LivePass.createSession(true, m.contentMetadataBuilder.callFunc("build"), notificationPeriod, m.video)
-
-  m.video.notificationinterval = notificationPeriod
   debugLog("[ConvivaAnalytics] start session")
 end sub
 
