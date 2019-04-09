@@ -34,7 +34,7 @@ sub onLoadStatusChanged()
     m.bitmovinPlayer.ObserveField(m.BitmovinFields.SEEK, "onSeek")
     m.bitmovinPlayer.ObserveField(m.BitmovinFields.SEEKED, "onSeeked")
 
-    m.convivaAnalytics = CreateObject("roSGNode", "conviva:ConvivaAnalytics")
+    m.convivaAnalytics = CreateObject("roSGNode", "bitmovinPlayerIntegrationConviva:ConvivaAnalytics")
     player = m.bitmovinPlayer
     customerKey = "250a04a88b97e5e54ff3edd2929b847e10c009c3"
     config = {
