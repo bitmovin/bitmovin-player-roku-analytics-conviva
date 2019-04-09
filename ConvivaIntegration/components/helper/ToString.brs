@@ -1,14 +1,14 @@
-Function ToString(variable As Dynamic) As String
-    If Type(variable) = "roInt" Or Type(variable) = "roInteger" Or Type(variable) = "roFloat" Or Type(variable) = "Float" Then
-        Return Str(variable).Trim()
-    Else If Type(variable) = "roBoolean" Or Type(variable) = "Boolean" Then
-        If variable = True Then
-            Return "True"
-        End If
-        Return "False"
-    Else If Type(variable) = "roString" Or Type(variable) = "String" Then
-        Return variable
-    Else
-        Return Type(variable)
-    End If
-End Function
+function toString(variable As dynamic) As string
+    if type(variable) = "roInt" or type(variable) = "roInteger" or type(variable) = "roFloat" or type(variable) = "Float" then
+        return str(variable).trim()
+    else if type(variable) = "roBoolean" or type(variable) = "Boolean" then
+        if variable = true then
+            return "true"
+        end if
+        return "false"
+    else If type(variable) = "roString" or type(variable) = "String" then
+        return variable
+    else
+        return type(variable)
+    end if
+end function

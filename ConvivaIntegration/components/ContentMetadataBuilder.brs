@@ -1,8 +1,5 @@
 sub init()
-  m.contentMetadata = ConvivaContentInfo()
-  m.metadataOverrides = ConvivaContentInfo()
-  m.metadata = ConvivaContentInfo()
-  m.playbackStarted = false
+  reset()
 end sub
 
 sub setOverrides(newValue)
@@ -13,7 +10,7 @@ sub setOverrides(newValue)
   m.metadataOverrides = newValue
 end sub
 
-sub setPlayerSeekStart(value)
+sub setPlaybackStarted(value)
   m.playbackStarted = value
 end sub
 
