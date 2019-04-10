@@ -4,7 +4,7 @@ sub init()
   ' Creates the ComponentLibrary (the BitmovinPlayerSDK in this case)
   m.bitmovinPlayerSDK = CreateObject("roSGNode", "ComponentLibrary")
   m.bitmovinPlayerSDK.id = "BitmovinPlayerSDK"
-  m.bitmovinPlayerSDK.uri = "https://cdn.bitmovin.com/player/roku/1.4.0-b.2/bitmovinplayer.zip"
+  m.bitmovinPlayerSDK.uri = "https://cdn.bitmovin.com/player/roku/1.4.0-b.4/bitmovinplayer.zip"
 
   ' Adding the ComponentLibrary node to the scene will start the download of the library
   m.top.appendChild(m.bitmovinPlayerSDK)
