@@ -1,16 +1,16 @@
 function getExamplePlayerConfig()
   return {
     playback: {
-      autoplay: true,
-      muted: true
+      autoplay: false,
+      muted: false
     },
     adaptation: {
       preload: false
     },
     source: {
-      hls: "https://demo-hls5-live.zahs.tv/hd/master.m3u8?timeshift=300",
+      hls: "https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8",
       title: "Test video",
-      assetType: "live"
+      assetType: "vod"
     }
   }
 end function
