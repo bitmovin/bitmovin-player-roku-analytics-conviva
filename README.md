@@ -13,11 +13,15 @@ The recommended version of the Conviva SDK is 2.151.0.36978.**
 ## Running the example
 
 1. Run `npm i` to install dependencies
-2. Ensure that you are in the same network as the roku device
-3. Run `npm run serve`
-  _This will bundle the library into a zip (with auto reloading after changes) and serve it via a node server_
-4. Enter the IP of your machine in [PlayerExample.brs](./demo/components/playerExample/PlayerExample.brs)
-5. Deploy the demo to the roku device
+2. Fetch conviva SDK
+  - Download conviva sdk source file
+  - Rename to `Conviva_Roku.brs`
+  - Put it into `./ConvivaIntegration/source/conviva`
+3. Ensure that you are in the same network as the roku device
+4. Run `npm run serve`
+  _(This will bundle the library into a zip and serve it via a node server)_
+5. Enter the IP of your machine in [PlayerExample.brs](./demo/components/playerExample/PlayerExample.brs)
+6. Deploy the demo to the roku device
 
 ## Usage
 
@@ -26,18 +30,18 @@ The recommended version of the Conviva SDK is 2.151.0.36978.**
 1. Fetch conviva SDK
   - Download conviva sdk source file
   - Rename to `Conviva_Roku.brs`
-  - But it into `./ConvivaIntegration/source/conviva`
+  - Put it into `./ConvivaIntegration/source/conviva`
 2. run `npm install && npm run build`
-3. Include the created ZIP from the `./dist` folder into your channel as component library
+3. Include the created ZIP from the `./dist` folder into your channel as a component library
   ```Brightscript
   m.conviva = CreateObject("roSGNode", "ComponentLibrary")
   m.conviva.id = "conviva"
   m.conviva.uri = "http://PATH_TO_YOUR_ZIP.zip"
   m.top.appendChild(m.conviva)
-  m.conviva.observeField("loadStatus", "YOUR_CALLBACK") ' Ensure the library is loaded
+  m.conviva.observeField("loadStatus", "YOUR_CALLBACK") ' Ensure the library is loaded before using it
   ```
 
-4. Create a instance of `ConvivaAnalytics`
+4. Create an instance of `ConvivaAnalytics` within the callback
   ```Brightscript
   m.convivaAnalytics = CreateObject("roSGNode", "bitmovinPlayerIntegrationConviva:ConvivaAnalytics")
   ```
@@ -48,7 +52,7 @@ The recommended version of the Conviva SDK is 2.151.0.36978.**
   - Download conviva sdk source file
   - Rename to `Conviva_Roku.brs`
   - Create a folder in your source folder called `conviva`
-  - But the `Conviva_Roku.brs` into the new created `./source/conviva` folder. _If you want to create a different folder structure you need to change the import of the `ConvivaSDK` within the `ConvivaAnalyticsTask.xml`_
+  - Put the `Conviva_Roku.brs` into the newly created `./source/conviva` folder. _If you want to create a different folder structure you need to change the import of the `ConvivaSDK` within the `ConvivaAnalyticsTask.xml`_
 2. Copy following files to your components folder:
   - `./ConvivaIntegration/components/ConvivaAnalytics.brs`
   - `./ConvivaIntegration/components/ConvivaAnalytics.xml`
@@ -65,7 +69,7 @@ The recommended version of the Conviva SDK is 2.151.0.36978.**
 
   _Ensure that the bitmovinPlayer exists here as well_
   ```Brightscript
-  customerKey = "YOUR_CUSTOMER_KEX"
+  customerKey = "YOUR_CUSTOMER_KEY"
   config = {
     debuggingEnabled : true
     gatewayUrl : "YOUR_GATEWAY_URL" ' optional and only for testing
