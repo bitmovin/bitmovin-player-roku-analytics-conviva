@@ -9,20 +9,14 @@ sub init()
   ' Adding the ComponentLibrary node to the scene will start the download of the library
   m.top.appendChild(m.bitmovinPlayerSDK)
   m.bitmovinPlayerSDK.observeField("loadStatus", "onLoadStatusChanged")
-
-  ' Do the same for the conviva integration
-  m.conviva = CreateObject("roSGNode", "ComponentLibrary")
-  m.conviva.id = "conviva"
-  m.conviva.uri = "http://192.168.1.48:8080/roku/player.zip"
-  m.top.appendChild(m.conviva)
-  m.conviva.observeField("loadStatus", "onLoadStatusChanged")
 end sub
 
 ' The ComponentLibrary loadStatus field can equal "none", "ready", "loading" or "failed"
 sub onLoadStatusChanged()
-  print "LOAD STATUS FOR LIBRARY: "; m.bitmovinPlayerSDK.loadStatus
-  if (m.bitmovinPlayerSDK.loadStatus = "ready" and m.conviva.loadStatus = "ready")
-    ' Once the librarird are loaded and ready, we can use them to reference the BitmovinPlayer and the ConvivaAnalytics components
+  print "LOAD STATUS FOR BITMOVINPLAYER LIBRARY: "; m.bitmovinPlayerSDK.loadStatus
+
+  if (m.bitmovinPlayerSDK.loadStatus = "ready")
+    ' Once the library is loaded and ready, we can use it to reference the BitmovinPlayer
     m.bitmovinPlayer = CreateObject("roSGNode", "BitmovinPlayerSDK:BitmovinPlayer")
     m.top.appendChild(m.bitmovinPlayer)
     m.BitmovinFunctions = m.bitmovinPlayer.BitmovinFunctions
@@ -32,7 +26,7 @@ sub onLoadStatusChanged()
     m.bitmovinPlayer.ObserveField(m.BitmovinFields.SEEK, "onSeek")
     m.bitmovinPlayer.ObserveField(m.BitmovinFields.SEEKED, "onSeeked")
 
-    m.convivaAnalytics = CreateObject("roSGNode", "conviva:ConvivaAnalytics")
+    m.convivaAnalytics = CreateObject("roSGNode", "ConvivaAnalytics")
     player = m.bitmovinPlayer
     customerKey = "250a04a88b97e5e54ff3edd2929b847e10c009c3"
     config = {

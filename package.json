@@ -1,0 +1,43 @@
+{
+  "name": "bitmovin-player-roku-analytics-conviva",
+  "description": "Integration of the Bitmovin Roku Player SDK with the Conviva Analytics",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bitmovin/bitmovin-player-roku-analytics-conviva.git"
+  },
+  "author": "Bitmovin",
+  "watch": {
+    "build:component": {
+      "patterns": [
+        "./ConvivaIntegration/components/*.*"
+      ],
+      "extensions": "brs,xml"
+    },
+    "build:example": {
+      "patterns": [
+        "./ConvivaIntegration/components/*.*"
+      ],
+      "extensions": "brs,xml"
+    }
+  },
+  "scripts": {
+    "clean:component": "rm -rf ./dist",
+    "ensure_dist_folder": "mkdir -p ./dist",
+
+    "serve:component": "npm run clean:component && npm run ensure_dist_folder && npm-run-all --parallel watch:component server",
+    "server": "http-server ./dist -p 8088 -c-1",
+    "build:component": "npm run ensure_dist_folder && cd ./ConvivaIntegration/ && npx bestzip ../dist/bitmovin-player-conviva-analytics.zip ./ && cd ..",
+    "watch:component": "npm-watch build:component",
+
+    "clean:example": "find ./demo/components -type f -maxdepth 1 -not -name 'playerExample' -delete && rm -rf ./demo/components/helper && rm -rf ./demo/source/conviva/",
+    "serve:example": "npm run clean:example && npm-watch build:example",
+    "build:example": "cp -r ./ConvivaIntegration/components/* ./demo/components && mkdir ./demo/source/conviva && cp -r ./ConvivaIntegration/source/conviva/Conviva_Roku.brs ./demo/source/conviva",
+    "watch:example": "npm-watch build:example"
+  },
+  "devDependencies": {
+    "bestzip": "^2.1.2",
+    "http-server": "^0.11.1",
+    "npm-run-all": "^4.1.5",
+    "npm-watch": "^0.6.0"
+  }
+}
