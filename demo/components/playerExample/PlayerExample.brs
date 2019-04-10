@@ -16,7 +16,7 @@ sub onLoadStatusChanged()
   print "LOAD STATUS FOR BITMOVINPLAYER LIBRARY: "; m.bitmovinPlayerSDK.loadStatus
 
   if (m.bitmovinPlayerSDK.loadStatus = "ready")
-    ' Once the librarird are loaded and ready, we can use them to reference the BitmovinPlayer and the ConvivaAnalytics components
+    ' Once the library is loaded and ready, we can use it to reference the BitmovinPlayer
     m.bitmovinPlayer = CreateObject("roSGNode", "BitmovinPlayerSDK:BitmovinPlayer")
     m.top.appendChild(m.bitmovinPlayer)
     m.BitmovinFunctions = m.bitmovinPlayer.BitmovinFunctions
