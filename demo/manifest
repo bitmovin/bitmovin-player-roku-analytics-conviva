@@ -16,4 +16,4 @@ requires_widevine_drm=1
 requires_widevine_version=1.0
 
 # License key
-bitmovin_player_license_key=00ba3d00-c776-468f-bb95-b0df1ce06b32
+bitmovin_player_license_key=YOUR_PLAYER_KEY

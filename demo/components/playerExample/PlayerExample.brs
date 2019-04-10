@@ -28,10 +28,10 @@ sub onLoadStatusChanged()
 
     m.convivaAnalytics = CreateObject("roSGNode", "ConvivaAnalytics")
     player = m.bitmovinPlayer
-    customerKey = "250a04a88b97e5e54ff3edd2929b847e10c009c3"
+    customerKey = "CUSTOMER_KEY"
     config = {
       debuggingEnabled : true
-      gatewayUrl : "https://bitmovin-test.testonly.conviva.com"
+      gatewayUrl : "https://youraccount-test.testonly.conviva.com", ' TOUCHSTONE_SERVICE_URL for testing
     }
     m.convivaAnalytics.callFunc("setup", player, customerKey, config)
     contentMetadataOverrides = {
