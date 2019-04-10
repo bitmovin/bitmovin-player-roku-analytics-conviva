@@ -7,7 +7,13 @@
   },
   "author": "Bitmovin",
   "watch": {
-    "build": {
+    "build:component": {
+      "patterns": [
+        "./ConvivaIntegration/components/*.*"
+      ],
+      "extensions": "brs,xml"
+    },
+    "build:example": {
       "patterns": [
         "./ConvivaIntegration/components/*.*"
       ],
@@ -15,12 +21,18 @@
     }
   },
   "scripts": {
-    "clean": "rm -rf ./dist",
+    "clean:component": "rm -rf ./dist",
     "ensure_dist_folder": "mkdir -p ./dist",
-    "watch": "npm-watch build",
-    "serve": "npm run clean && npm run ensure_dist_folder && npm-run-all --parallel watch server",
+
+    "serve:component": "npm run clean:component && npm run ensure_dist_folder && npm-run-all --parallel watch:component server",
     "server": "http-server ./dist -p 8088 -c-1",
-    "build": "npm run ensure_dist_folder && cd ./ConvivaIntegration/ && npx bestzip ../dist/bitmovin-player-conviva-analytics.zip ./ && cd .."
+    "build:component": "npm run ensure_dist_folder && cd ./ConvivaIntegration/ && npx bestzip ../dist/bitmovin-player-conviva-analytics.zip ./ && cd ..",
+    "watch:component": "npm-watch build:component",
+
+    "clean:example": "find ./demo/components -type f -maxdepth 1 -not -name 'playerExample' -delete && rm -rf ./demo/components/helper && rm -rf ./demo/source/conviva/",
+    "serve:example": "npm run clean:example && npm-watch build:example",
+    "build:example": "cp -r ./ConvivaIntegration/components/* ./demo/components && mkdir ./demo/source/conviva && cp -r ./ConvivaIntegration/source/conviva/Conviva_Roku.brs ./demo/source/conviva",
+    "watch:example": "npm-watch build:example"
   },
   "devDependencies": {
     "bestzip": "^2.1.2",
