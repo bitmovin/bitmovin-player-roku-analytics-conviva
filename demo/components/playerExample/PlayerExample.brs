@@ -20,8 +20,8 @@ end sub
 
 ' The ComponentLibrary loadStatus field can equal "none", "ready", "loading" or "failed"
 sub onLoadStatusChanged()
-  print "LOAD STATUS FOR LIBRARY: "; m.bitmovinPlayerSDK.loadStatus
-  print "LOAD STATUS FOR LIBRARY: "; m.conviva.loadStatus
+  print "LOAD STATUS FOR BITMOVINPLAYER LIBRARY: "; m.bitmovinPlayerSDK.loadStatus
+  print "LOAD STATUS FOR BITMOVINPLAYER_INTEGRATION_CONVIVA LIBRARY: "; m.conviva.loadStatus
 
   if (m.bitmovinPlayerSDK.loadStatus = "ready" and m.conviva.loadStatus = "ready")
     ' Once the librarird are loaded and ready, we can use them to reference the BitmovinPlayer and the ConvivaAnalytics components
