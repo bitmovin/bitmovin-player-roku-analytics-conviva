@@ -18,33 +18,11 @@ The recommended version of the Conviva SDK is 2.151.0.36978.**
   - Rename to `Conviva_Roku.brs`
   - Put it into `./ConvivaIntegration/source/conviva`
 3. Ensure that you are in the same network as the roku device
-4. Run `npm run serve`
-  _(This will bundle the library into a zip and serve it via a node server)_
-5. Enter the IP of your machine in [PlayerExample.brs](./demo/components/playerExample/PlayerExample.brs)
-6. Deploy the demo to the roku device
+4. Run `npm run serve:example`
+  _(This will copy all needed files from ./ConvivaIntegration to the ./demo folder)_
+5. Zip and deploy the demo to the roku device
 
 ## Usage
-
-### Use as Component Library
-
-1. Fetch conviva SDK
-  - Download conviva SDK source file
-  - Rename to `Conviva_Roku.brs`
-  - Put it into `./ConvivaIntegration/source/conviva`
-2. run `npm install && npm run build`
-3. Include the created ZIP from the `./dist` folder into your channel as a component library
-  ```Brightscript
-  m.conviva = CreateObject("roSGNode", "ComponentLibrary")
-  m.conviva.id = "conviva"
-  m.conviva.uri = "http://PATH_TO_YOUR_ZIP.zip"
-  m.top.appendChild(m.conviva)
-  m.conviva.observeField("loadStatus", "YOUR_CALLBACK") ' Ensure the library is loaded before using it
-  ```
-
-4. Create an instance of `ConvivaAnalytics` within the callback
-  ```Brightscript
-  m.convivaAnalytics = CreateObject("roSGNode", "bitmovinPlayerIntegrationConviva:ConvivaAnalytics")
-  ```
 
 ### Use with Source Code
 
@@ -58,9 +36,33 @@ The recommended version of the Conviva SDK is 2.151.0.36978.**
   - `./ConvivaIntegration/components/ConvivaAnalytics.xml`
   - `./ConvivaIntegration/components/ConvivaAnalyticsTask.brs`
   - `./ConvivaIntegration/components/ConvivaAnalyticsTask.xml`
+  - `./ConvivaIntegration/components/ContentMetadataBuilder.brs`
+  - `./ConvivaIntegration/components/ContentMetadataBuilder.xml`
+  - `./ConvivaIntegration/components/helper`
 3. Create a instance of `ConvivaAnalytics`
   ```Brightscript
   m.convivaAnalytics = CreateObject("roSGNode", "ConvivaAnalytics")
+  ```
+
+### Use as Component Library
+
+1. Fetch conviva SDK
+  - Download conviva SDK source file
+  - Rename to `Conviva_Roku.brs`
+  - Put it into `./ConvivaIntegration/source/conviva`
+2. run `npm install && npm run build:component`
+3. Include the created ZIP from the `./dist` folder into your channel as a component library
+  ```Brightscript
+  m.conviva = CreateObject("roSGNode", "ComponentLibrary")
+  m.conviva.id = "conviva"
+  m.conviva.uri = "http://PATH_TO_YOUR_ZIP.zip"
+  m.top.appendChild(m.conviva)
+  m.conviva.observeField("loadStatus", "YOUR_CALLBACK") ' Ensure the library is loaded before using it
+  ```
+
+4. Create an instance of `ConvivaAnalytics` within the callback
+  ```Brightscript
+  m.convivaAnalytics = CreateObject("roSGNode", "bitmovinPlayerIntegrationConviva:ConvivaAnalytics")
   ```
 
 ### Setup
