@@ -62,6 +62,8 @@ sub monitorVideo()
         onSeek()
       else if field = m.top.player.BitmovinFields.PLAY
         onPlay()
+      else if field = m.top.player.BitmovinFields.SOURCE_UNLOADED
+        onSourceUnloaded()
       else if field = "state"
         onStateChanged(data)
       else if field = "invoke"
@@ -126,6 +128,10 @@ end sub
 sub onSeek()
   debugLog("[Player Event] onSeek")
   m.LivePass.setPlayerSeekStart(m.cSession, -1)
+end sub
+
+sub onSourceUnloaded()
+  endSession()
 end sub
 
 sub createConvivaSession()
@@ -211,6 +217,7 @@ sub registerPlayerEvents()
   ' Passing everything to m.port so that conviva can intercept and track them
   m.top.player.observeField(m.top.player.BitmovinFields.SEEK, m.port)
   m.top.player.observeField(m.top.player.BitmovinFields.PLAY, m.port)
+  m.top.player.observeField(m.top.player.BitmovinFields.SOURCE_UNLOADED, m.port)
 
   ' In case of autoplay we miss the inital play callback.
   ' See #registerExternalManagingEvents for more details.
