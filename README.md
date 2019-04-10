@@ -1,10 +1,10 @@
 # Bitmovin Player Conviva Analytics Integration
 
 ## Limitations
-Currently we don't support ad tracking at all.
+Currently we don't support ad tracking.
 
 ## Compatibility
-**This version of the Conviva Analytics Integration works only with Player Version >= 1.4.x.
+**This version of the Conviva Analytics Integration works only with Bitmovin Player Version >= 1.4.x.
 The recommended version of the Conviva SDK is 2.151.0.36978.**
 
 ## Getting Started
@@ -14,7 +14,7 @@ The recommended version of the Conviva SDK is 2.151.0.36978.**
 
 1. Run `npm i` to install dependencies
 2. Fetch conviva SDK
-  - Download conviva sdk source file
+  - Download conviva SDK source file
   - Rename to `Conviva_Roku.brs`
   - Put it into `./ConvivaIntegration/source/conviva`
 3. Ensure that you are in the same network as the roku device
@@ -28,7 +28,7 @@ The recommended version of the Conviva SDK is 2.151.0.36978.**
 ### Use as Component Library
 
 1. Fetch conviva SDK
-  - Download conviva sdk source file
+  - Download conviva SDK source file
   - Rename to `Conviva_Roku.brs`
   - Put it into `./ConvivaIntegration/source/conviva`
 2. run `npm install && npm run build`
@@ -49,7 +49,7 @@ The recommended version of the Conviva SDK is 2.151.0.36978.**
 ### Use with Source Code
 
 1. Fetch conviva SDK
-  - Download conviva sdk source file
+  - Download conviva SDK source file
   - Rename to `Conviva_Roku.brs`
   - Create a folder in your source folder called `conviva`
   - Put the `Conviva_Roku.brs` into the newly created `./source/conviva` folder. _If you want to create a different folder structure you need to change the import of the `ConvivaSDK` within the `ConvivaAnalyticsTask.xml`_
@@ -84,8 +84,8 @@ The recommended version of the Conviva SDK is 2.151.0.36978.**
 
 #### Custom Deficiency Reporting (VPF)
 
-If you would like to track custom VPF (Video Playback Failures) events when no actual player error happens (e.g.
-endless stalling due to network condition) you can use following API to track those deficiencies.
+If you want to track custom VPF (Video Playback Failures) events when no actual player error happens (e.g.
+endless stalling due to network condition) you can use following API to track those deficiencies:
 
 ```Brightscript
 m.convivaAnalytics.callFunc("reportPlaybackDeficiency", "MY_ERROR_MESSAGE", true, true)
