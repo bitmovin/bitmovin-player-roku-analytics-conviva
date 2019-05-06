@@ -124,7 +124,7 @@ contentMetadataOverrides = {
   playerName: "Conviva Integration Test Channel",
   viewerId: "MyAwesomeViewerId",
   tags: {
-    CustomKey: "CustomValue"
+    "CustomKey": "CustomValue"
   }
 }
 m.convivaAnalytics.callFunc("updateContentMetadata", contentMetadataOverrides)
