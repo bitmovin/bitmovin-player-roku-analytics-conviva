@@ -169,7 +169,7 @@ sub buildContentMetadata()
   m.contentMetadataBuilder.callFunc("setStreamType", m.top.player.callFunc("isLive"))
 
   internalCustomTags = {
-    integrationVersion: "1.0.0"
+    "integrationVersion": "1.0.0"
   }
 
   config = m.top.player.callFunc("getConfig")
