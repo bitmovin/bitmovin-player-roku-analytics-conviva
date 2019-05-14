@@ -9,13 +9,13 @@
   "watch": {
     "build:component": {
       "patterns": [
-        "./ConvivaIntegration/components/*.*"
+        "./ConvivaIntegration/components/**/*.*"
       ],
       "extensions": "brs,xml"
     },
     "build:example": {
       "patterns": [
-        "./ConvivaIntegration/components/*.*"
+        "./ConvivaIntegration/components/**/*.*"
       ],
       "extensions": "brs,xml"
     }
