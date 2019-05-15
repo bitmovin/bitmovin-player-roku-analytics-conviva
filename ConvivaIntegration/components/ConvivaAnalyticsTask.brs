@@ -9,9 +9,9 @@ sub init()
   m.contentMetadataBuilder = CreateObject("roSGNode", "ContentMetadataBuilder")
 
   ' Workaround for wrong event order of the bitmovinPlayerSDK
-  ' The SourceUnloaded event is fired before the Error event in case of an error.
-  ' This lead to a clean session closing instead of an error. To Workaround this we delay the onSourceUnloaded event by
-  ' 100 ms
+  ' In case of an error the resulting SourceUnloaded event is fired before the actual Error event.
+  ' This leads to a clean session closing instead of an error. To work around this we delay the onSourceUnloaded event
+  ' by 100 ms
   m.sourceUnloadedTimer = invalid
 end sub
 
