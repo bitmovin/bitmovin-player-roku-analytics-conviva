@@ -7,6 +7,12 @@ sub init()
   m.video = invalid
 
   m.contentMetadataBuilder = CreateObject("roSGNode", "ContentMetadataBuilder")
+
+  ' Workaround for wrong event order of the bitmovinPlayerSDK
+  ' In case of an error the resulting SourceUnloaded event is fired before the actual Error event.
+  ' This leads to a clean session closing instead of an error. To work around this we delay the onSourceUnloaded event
+  ' by 100 ms
+  m.sourceUnloadedTimer = invalid
 end sub
 
 sub internalInit()
@@ -70,6 +76,11 @@ sub monitorVideo()
         invoke(data)
       end if
     end if
+
+    if m.sourceUnloadedTimer <> invalid and m.sourceUnloadedTimer.TotalMilliseconds() > 100
+      m.sourceUnloadedTimer = invalid
+      endSession()
+    end if
   end while
 end sub
 
@@ -93,22 +104,13 @@ end sub
 
 sub onStateChanged(state)
   debugLog("[ConvivaAnalytics] state changed: " + state)
-  if state = "error"
-    onError()
-  else if state = "finished"
+  if state = "finished"
     onPlaybackFinished()
   end if
   ' Other states are handled by conviva
 end sub
 
 sub onPlaybackFinished()
-  endSession()
-end sub
-
-sub onError()
-  ' create a new session to track VSF
-  if not isSessionActive() then createSession()
-  m.livePass.reportError(m.cSession, "Error", m.livePass.StreamerError.SEVERITY_FATAL)
   endSession()
 end sub
 
@@ -131,7 +133,11 @@ sub onSeek()
 end sub
 
 sub onSourceUnloaded()
-  endSession()
+  debugLog("[Player Event] onSourceUnloaded")
+  if not isSessionActive() then return
+
+  m.sourceUnloadedTimer = CreateObject("roTimespan")
+  m.sourceUnloadedTimer.mark() ' start the timer
 end sub
 
 sub createConvivaSession()
