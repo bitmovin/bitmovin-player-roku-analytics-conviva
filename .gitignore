@@ -1,7 +1,7 @@
 node_modules
 dist
 ConvivaIntegration/out
-demo/components/helper
+demo/components/conviva
 demo/components/*.brs
 demo/components/*.xml
 demo/source/conviva/*
