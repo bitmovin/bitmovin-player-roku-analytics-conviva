@@ -1,7 +1,7 @@
 sub init()
   m.InvokeMethods = {
     UPDATE_CONTENT_METADATA: "updateContentMetadata",
-    END_SESSION: "endSEssion",
+    END_SESSION: "endSession",
     REPORT_PLAYBACK_DEFICIENCY: "reportPlaybackDeficiency",
     SEND_CUSTOM_APPLICATION_EVENT: "sendCustomApplicationEvent",
     SEND_CUSTOM_PLAYBACK_EVENT: "sendCustomPlaybackEvent"
