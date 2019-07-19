@@ -8,5 +8,5 @@
     <function name="sendCustomApplicationEvent" />
     <function name="sendCustomPlaybackEvent" />
   </interface>
-  <script type="text/brightscript" uri="pkg:/components/ConvivaAnalytics.brs" />
+  <script type="text/brightscript" uri="pkg:/components/conviva/ConvivaAnalytics.brs" />
 </component>

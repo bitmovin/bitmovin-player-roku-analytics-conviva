@@ -30,5 +30,5 @@
   </interface>
 
   <script type="text/brightscript" uri="pkg:/source/conviva/Conviva_Roku.brs" />
-  <script type="text/brightscript" uri="pkg:/components/ContentMetadataBuilder.brs" />
+  <script type="text/brightscript" uri="pkg:/components/conviva/ContentMetadataBuilder.brs" />
 </component>
