@@ -27,7 +27,7 @@
     "server": "http-server ./dist -p 8088 -c-1",
     "build:component": "npm run ensure_dist_folder && cd ./ConvivaIntegration/ && npx bestzip ../dist/bitmovin-player-conviva-analytics.zip ./ && cd ..",
     "watch:component": "npm-watch build:component",
-    "clean:example": "find ./demo/components -type f -maxdepth 1 -not -name 'playerExample' -delete && rm -rf ./demo/components/conviva && rm -rf ./demo/source/conviva/",
+    "clean:example": "find ./demo/components -type f -maxdepth 1 -not -name 'playerExample' -delete && rm -rf ./demo/components/conviva/ && rm -rf ./demo/source/conviva/",
     "serve:example": "npm run clean:example && npm-watch build:example",
     "build:example": "mkdir ./demo/components/conviva && cp -r ./ConvivaIntegration/components/* ./demo/components/conviva/ && mkdir ./demo/source/conviva && cp -r ./ConvivaIntegration/source/conviva/Conviva_Roku.brs ./demo/source/conviva",
     "watch:example": "npm-watch build:example"
