@@ -74,6 +74,14 @@ sub monitorVideo()
         onStateChanged(data)
       else if field = "invoke"
         invoke(data)
+      else if field = "adBreakStarted"
+        onAdBreakStarted()
+      else if field = "adBreakFinished"
+        onAdBreakFinished()
+      else if field = "adError"
+        onAdError()
+      else if field = "adSkipped"
+        onAdSkipped()
       end if
     end if
 
@@ -138,6 +146,24 @@ sub onSourceUnloaded()
 
   m.sourceUnloadedTimer = CreateObject("roTimespan")
   m.sourceUnloadedTimer.mark() ' start the timer
+end sub
+
+sub onAdBreakStarted()
+  m.LivePass.detachStreamer()
+  m.LivePass.adStart()
+end sub
+
+sub onAdBreakFinished()
+  m.LivePass.adEnd()
+  m.LivePass.attachStreamer()
+end sub
+
+sub onAdError()
+  Print "AD Error occurred"
+end sub
+
+sub onAdSkipped()
+  print "AD has been skipped!"
 end sub
 
 sub createConvivaSession()
@@ -217,6 +243,7 @@ sub registerEvents()
   registerPlayerEvents()
   registerExternalManagingEvents()
   registerConvivaEvents()
+  registerAdEvents()
 end sub
 
 sub registerPlayerEvents()
@@ -257,6 +284,13 @@ sub registerConvivaEvents()
   m.video.observeField("errorCode", m.port)
   m.video.observeField("errorMsg", m.port)
   m.video.observeField("downloadedSegment", m.port)
+end sub
+
+sub registerAdEvents()
+  m.top.player.observeField("adBreakStarted", m.port)
+  m.top.player.observeField("adBreakFinished", m.port)
+  m.top.player.observeField("adError", m.port)
+  m.top.player.observeField("adSkipped", m.port)
 end sub
 
 sub debugLog(message as String)
