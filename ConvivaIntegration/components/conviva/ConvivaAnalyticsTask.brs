@@ -159,11 +159,13 @@ sub onAdBreakFinished()
 end sub
 
 sub onAdError()
-  Print "AD Error occurred"
+  sendCustomPlaybackEvent("adError", invalid)
+  onAdBreakFinished()
 end sub
 
 sub onAdSkipped()
-  print "AD has been skipped!"
+  sendCustomPlaybackEvent("adSkipped", invalid)
+  onAdBreakFinished()
 end sub
 
 sub createConvivaSession()
