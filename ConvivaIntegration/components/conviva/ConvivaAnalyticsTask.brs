@@ -63,7 +63,6 @@ sub monitorVideo()
     if type(msg) = "roSGNodeEvent"
       field = msg.getField()
       data = msg.getData()
-      STOP
       if field = m.top.player.BitmovinFields.SEEK
         onSeek()
       else if field = m.top.player.BitmovinFields.PLAY
