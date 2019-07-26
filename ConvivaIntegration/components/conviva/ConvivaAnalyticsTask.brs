@@ -63,7 +63,7 @@ sub monitorVideo()
     if type(msg) = "roSGNodeEvent"
       field = msg.getField()
       data = msg.getData()
-
+      STOP
       if field = m.top.player.BitmovinFields.SEEK
         onSeek()
       else if field = m.top.player.BitmovinFields.PLAY
@@ -74,13 +74,13 @@ sub monitorVideo()
         onStateChanged(data)
       else if field = "invoke"
         invoke(data)
-      else if field = "adBreakStarted"
+      else if field = m.top.player.BitmovinFields.AD_BREAK_STARTED
         onAdBreakStarted()
-      else if field = "adBreakFinished"
+      else if field = m.top.player.BitmovinFields.AD_BREAK_FINISHED
         onAdBreakFinished()
       else if field = "adError"
         onAdError()
-      else if field = "adSkipped"
+      else if field = m.top.player.BitmovinFields.AD_SKIPPED
         onAdSkipped()
       end if
     end if
