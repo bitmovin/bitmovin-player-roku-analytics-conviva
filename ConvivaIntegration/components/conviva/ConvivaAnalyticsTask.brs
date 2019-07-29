@@ -73,10 +73,10 @@ sub monitorVideo()
         onStateChanged(data)
       else if field = "invoke"
         invoke(data)
-      else if field = m.top.player.BitmovinFields.AD_BREAK_STARTED
-        onAdBreakStarted()
-      else if field = m.top.player.BitmovinFields.AD_BREAK_FINISHED
-        onAdBreakFinished()
+      else if field = m.top.player.BitmovinFields.AD_STARTED
+        onAdStarted()
+      else if field = m.top.player.BitmovinFields.AD_FINISHED
+        onAdFinished()
       else if field = "adError"
         onAdError()
       else if field = m.top.player.BitmovinFields.AD_SKIPPED
@@ -147,12 +147,12 @@ sub onSourceUnloaded()
   m.sourceUnloadedTimer.mark() ' start the timer
 end sub
 
-sub onAdBreakStarted()
+sub onAdStarted()
   m.LivePass.detachStreamer()
   m.LivePass.adStart()
 end sub
 
-sub onAdBreakFinished()
+sub onAdFinished()
   m.LivePass.adEnd()
   m.LivePass.attachStreamer()
 end sub
