@@ -3,8 +3,10 @@ sub init()
   m.port = CreateObject("roMessagePort")
   m.LivePass = invalid
   m.cSession = invalid
+  m.adSession = invalid
   m.DEBUG = false
   m.video = invalid
+  m.PodIndex = 0
 
   m.contentMetadataBuilder = CreateObject("roSGNode", "ContentMetadataBuilder")
 
@@ -73,6 +75,10 @@ sub monitorVideo()
         onStateChanged(data)
       else if field = "invoke"
         invoke(data)
+      else if field = m.top.player.BitmovinFields.AD_STARTED
+        onAdStarted()
+      else if field = m.top.player.BitmovinFields.AD_FINISHED
+        onAdFinished()
       else if field = m.top.player.BitmovinFields.AD_BREAK_STARTED
         onAdBreakStarted()
       else if field = m.top.player.BitmovinFields.AD_BREAK_FINISHED
@@ -147,30 +153,60 @@ sub onSourceUnloaded()
   m.sourceUnloadedTimer.mark() ' start the timer
 end sub
 
+sub onAdStarted()
+  adTags = []
+  adMetadata = ConvivaContentInfo("Sample ad", adTags)
+
+  m.adSession = livePass.createAdSession(m.cSession, false, adMetadata, m.notificationPeriod, m.video, m.port)
+end sub
+
+sub onAdFinished()
+  if m.adSession = invalid then return
+
+  livePass.cleanupSession(m.adSession)
+  m.adSession = invalid
+end sub
+
 sub onAdBreakStarted()
   m.LivePass.detachStreamer()
   m.LivePass.adStart()
+
+  podInfo = {
+    "podDuration": 0,
+    "podPosition": "Pre-Roll",
+    "podIndex": m.PodIndex,
+    "absoluteIndex": 1
+  }
+  m.LivePass.sendSessionEvent(m.cSession, "Conviva.PodStart", podInfo)
 end sub
 
 sub onAdBreakFinished()
   m.LivePass.adEnd()
   m.LivePass.attachStreamer()
+
+  podInfo = {
+    "podPosition": "Pre-Roll",
+    "podIndex": m.PodIndex,
+    "absoluteIndex": 1
+  }
+  m.LivePass.sendSessionEvent(m.cSession, "Conviva.PodEnd", podInfo)
 end sub
 
 sub onAdError()
   sendCustomPlaybackEvent("adError", invalid)
-  onAdBreakFinished()
+  onAdFinished()
 end sub
 
 sub onAdSkipped()
   sendCustomPlaybackEvent("adSkipped", invalid)
-  onAdBreakFinished()
+  onAdFinished()
 end sub
 
 sub createConvivaSession()
   notificationPeriod = m.video.notificationinterval
   buildContentMetadata()
   m.cSession = m.LivePass.createSession(true, m.contentMetadataBuilder.callFunc("build"), notificationPeriod, m.video)
+  m.PodIndex = 0
   debugLog("[ConvivaAnalytics] start session")
 end sub
 
