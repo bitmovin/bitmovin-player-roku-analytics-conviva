@@ -30,7 +30,7 @@
 
     "clean:example": "rm -rf ./demo/components/conviva && rm -rf ./demo/source/conviva/",
     "serve:example": "npm run clean:example && npm-watch build:example",
-    "build:example": "rsync -a ./ConvivaIntegration/source ./demo/source && rsync -a ./ConvivaIntegration/components/ ./demo/components/",
+    "build:example": "rsync -a ./ConvivaIntegration/source/ ./demo/source/ && rsync -a ./ConvivaIntegration/components/ ./demo/components/",
     "watch:example": "npm-watch build:example"
   },
   "devDependencies": {
