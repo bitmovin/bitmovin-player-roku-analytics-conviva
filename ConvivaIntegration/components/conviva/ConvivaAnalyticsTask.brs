@@ -46,6 +46,11 @@ sub sendCustomPlaybackEvent(eventName, attributes)
     return
   end if
 
+  if isAdSessionActive()
+    m.livePass.sendSessionEvent(m.adSession, eventName, attributes)
+    return
+  end if
+
   m.livePass.sendSessionEvent(m.cSession, eventName, attributes)
 end sub
 
@@ -142,6 +147,12 @@ end sub
 
 sub onSeek()
   debugLog("[Player Event] onSeek")
+
+  if isAdSessionActive()
+    m.livePass.setPlayerSeekStart(m.adSession, -1)
+    return
+  end if
+
   m.LivePass.setPlayerSeekStart(m.cSession, -1)
 end sub
 
@@ -156,14 +167,17 @@ end sub
 sub onAdStarted()
   adTags = []
   adMetadata = ConvivaContentInfo("Sample ad", adTags)
+  notificationPeriod = m.video.notificationinterval
 
-  m.adSession = livePass.createAdSession(m.cSession, false, adMetadata, m.notificationPeriod, m.video, m.port)
+  m.adSession = m.LivePass.createAdSession(m.cSession, false, adMetadata, notificationPeriod, m.video)
+
+  m.LivePass.setPlayerState(m.adSession, m.LivePass.PLAYER_STATES.PLAYING)
 end sub
 
 sub onAdFinished()
   if m.adSession = invalid then return
 
-  livePass.cleanupSession(m.adSession)
+  m.LivePass.cleanupSession(m.adSession)
   m.adSession = invalid
 end sub
 
@@ -171,11 +185,13 @@ sub onAdBreakStarted()
   m.LivePass.detachStreamer()
   m.LivePass.adStart()
 
+  m.PodIndex++
+
   podInfo = {
-    "podDuration": 0,
+    "podDuration": "60",
     "podPosition": "Pre-Roll",
-    "podIndex": m.PodIndex,
-    "absoluteIndex": 1
+    "podIndex": StrI(m.PodIndex),
+    "absoluteIndex": "1"
   }
   m.LivePass.sendSessionEvent(m.cSession, "Conviva.PodStart", podInfo)
 end sub
@@ -186,8 +202,8 @@ sub onAdBreakFinished()
 
   podInfo = {
     "podPosition": "Pre-Roll",
-    "podIndex": m.PodIndex,
-    "absoluteIndex": 1
+    "podIndex": StrI(m.PodIndex),
+    "absoluteIndex": "1"
   }
   m.LivePass.sendSessionEvent(m.cSession, "Conviva.PodEnd", podInfo)
 end sub
@@ -222,6 +238,13 @@ sub reportPlaybackDeficiency(message, isFatal, closeSession = true)
   if not isSessionActive() then return
 
   debugLog("[ConvivaAnalytics] reporting deficiency")
+
+  if isAdSessionActive()
+    m.livePass.reportError(m.adSession, message, isFatal)
+    if closeSession then onAdFinished()
+    return
+  end if
+
   m.livePass.reportError(m.cSession, message, isFatal)
 
   if closeSession
@@ -231,6 +254,10 @@ end sub
 
 function isSessionActive()
   return m.cSession <> invalid
+end function
+
+function isAdSessionActive()
+  return m.adSession <> invalid
 end function
 
 sub buildContentMetadata()
@@ -324,6 +351,8 @@ sub registerConvivaEvents()
 end sub
 
 sub registerAdEvents()
+  m.top.player.observeField("adStarted", m.port)
+  m.top.player.observeField("adFinished", m.port)
   m.top.player.observeField("adBreakStarted", m.port)
   m.top.player.observeField("adBreakFinished", m.port)
   m.top.player.observeField("adError", m.port)
