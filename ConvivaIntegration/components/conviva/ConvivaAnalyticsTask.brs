@@ -63,7 +63,6 @@ sub monitorVideo()
     if type(msg) = "roSGNodeEvent"
       field = msg.getField()
       data = msg.getData()
-
       if field = m.top.player.BitmovinFields.SEEK
         onSeek()
       else if field = m.top.player.BitmovinFields.PLAY
@@ -74,6 +73,14 @@ sub monitorVideo()
         onStateChanged(data)
       else if field = "invoke"
         invoke(data)
+      else if field = m.top.player.BitmovinFields.AD_BREAK_STARTED
+        onAdBreakStarted()
+      else if field = m.top.player.BitmovinFields.AD_BREAK_FINISHED
+        onAdBreakFinished()
+      else if field = "adError"
+        onAdError()
+      else if field = m.top.player.BitmovinFields.AD_SKIPPED
+        onAdSkipped()
       end if
     end if
 
@@ -138,6 +145,26 @@ sub onSourceUnloaded()
 
   m.sourceUnloadedTimer = CreateObject("roTimespan")
   m.sourceUnloadedTimer.mark() ' start the timer
+end sub
+
+sub onAdBreakStarted()
+  m.LivePass.detachStreamer()
+  m.LivePass.adStart()
+end sub
+
+sub onAdBreakFinished()
+  m.LivePass.adEnd()
+  m.LivePass.attachStreamer()
+end sub
+
+sub onAdError()
+  sendCustomPlaybackEvent("adError", invalid)
+  onAdBreakFinished()
+end sub
+
+sub onAdSkipped()
+  sendCustomPlaybackEvent("adSkipped", invalid)
+  onAdBreakFinished()
 end sub
 
 sub createConvivaSession()
@@ -217,6 +244,7 @@ sub registerEvents()
   registerPlayerEvents()
   registerExternalManagingEvents()
   registerConvivaEvents()
+  registerAdEvents()
 end sub
 
 sub registerPlayerEvents()
@@ -257,6 +285,13 @@ sub registerConvivaEvents()
   m.video.observeField("errorCode", m.port)
   m.video.observeField("errorMsg", m.port)
   m.video.observeField("downloadedSegment", m.port)
+end sub
+
+sub registerAdEvents()
+  m.top.player.observeField("adBreakStarted", m.port)
+  m.top.player.observeField("adBreakFinished", m.port)
+  m.top.player.observeField("adError", m.port)
+  m.top.player.observeField("adSkipped", m.port)
 end sub
 
 sub debugLog(message as String)

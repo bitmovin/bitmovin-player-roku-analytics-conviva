@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [develop]
+### Added
+- Event tracking and reporting for `adBreakStarted`, `adBreakFinished`, `adError`, `adSkipped` 
+
 ### Changed
 - Folder structure within `components` folder
 

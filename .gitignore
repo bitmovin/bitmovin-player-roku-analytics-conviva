@@ -4,4 +4,4 @@ ConvivaIntegration/out
 demo/components/conviva
 demo/components/*.brs
 demo/components/*.xml
-demo/source/conviva/*
+demo/source/conviva
