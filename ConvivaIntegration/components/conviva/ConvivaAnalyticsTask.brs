@@ -7,6 +7,7 @@ sub init()
   m.DEBUG = false
   m.video = invalid
   m.PodIndex = 0
+  m.adType = ""
 
   m.contentMetadataBuilder = CreateObject("roSGNode", "ContentMetadataBuilder")
 
@@ -80,10 +81,6 @@ sub monitorVideo()
         onStateChanged(data)
       else if field = "invoke"
         invoke(data)
-      else if field = m.top.player.BitmovinFields.AD_STARTED
-        onAdStarted()
-      else if field = m.top.player.BitmovinFields.AD_FINISHED
-        onAdFinished()
       else if field = m.top.player.BitmovinFields.AD_BREAK_STARTED
         onAdBreakStarted()
       else if field = m.top.player.BitmovinFields.AD_BREAK_FINISHED
@@ -164,32 +161,30 @@ sub onSourceUnloaded()
   m.sourceUnloadedTimer.mark() ' start the timer
 end sub
 
-sub onAdStarted()
-  adTags = []
-  adMetadata = ConvivaContentInfo("Sample ad", adTags)
-  notificationPeriod = m.video.notificationinterval
-
-  m.adSession = m.LivePass.createAdSession(m.cSession, false, adMetadata, notificationPeriod, m.video)
-
-  m.LivePass.setPlayerState(m.adSession, m.LivePass.PLAYER_STATES.PLAYING)
-end sub
-
-sub onAdFinished()
-  if m.adSession = invalid then return
-
-  m.LivePass.cleanupSession(m.adSession)
-  m.adSession = invalid
-end sub
-
 sub onAdBreakStarted()
   m.LivePass.detachStreamer()
   m.LivePass.adStart()
 
+  adBreak = m.top.player.callFunc(m.top.player.BitmovinFunctions.AD_LIST)[m.PodIndex]
+  duration = 0
+
+  for each ad in adBreak.ads
+    duration += ad.duration
+  end for
+
+  if adBreak.scheduleTime = 0
+    m.adType = "Pre-roll"
+  else if ((adBreak.scheduleTime + duration) >= m.video.duration)
+    m.adType = "Post-roll"
+  else
+    m.adType = "Mid-roll"
+  end if
+
   m.PodIndex++
 
   podInfo = {
-    "podDuration": "60",
-    "podPosition": "Pre-Roll",
+    "podDuration": StrI(duration),
+    "podPosition": m.adType,
     "podIndex": StrI(m.PodIndex),
     "absoluteIndex": "1"
   }
@@ -201,7 +196,7 @@ sub onAdBreakFinished()
   m.LivePass.attachStreamer()
 
   podInfo = {
-    "podPosition": "Pre-Roll",
+    "podPosition": m.adType,
     "podIndex": StrI(m.PodIndex),
     "absoluteIndex": "1"
   }
@@ -351,8 +346,6 @@ sub registerConvivaEvents()
 end sub
 
 sub registerAdEvents()
-  m.top.player.observeField("adStarted", m.port)
-  m.top.player.observeField("adFinished", m.port)
   m.top.player.observeField("adBreakStarted", m.port)
   m.top.player.observeField("adBreakFinished", m.port)
   m.top.player.observeField("adError", m.port)
@@ -362,3 +355,14 @@ end sub
 sub debugLog(message as String)
   if m.DEBUG then ?message
 end sub
+
+function getAd(mediaId)
+  adBreaks = m.top.player.callFunc(m.top.player.BitmovinFunctions.AD_LIST)
+  for each adBreak in adBreaks
+    for each ad in adBreak.ads
+      if ad.id = mediaId then return ad
+    end for
+  end for
+
+  return "NA"
+end function
