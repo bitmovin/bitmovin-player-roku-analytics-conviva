@@ -3,7 +3,6 @@ sub init()
   m.port = CreateObject("roMessagePort")
   m.LivePass = invalid
   m.cSession = invalid
-  m.adSession = invalid
   m.DEBUG = false
   m.video = invalid
   m.PodIndex = 0
@@ -44,11 +43,6 @@ end sub
 sub sendCustomPlaybackEvent(eventName, attributes)
   if not isSessionActive()
     debugLog("Cannot send playback event, no active monitoring session")
-    return
-  end if
-
-  if isAdSessionActive()
-    m.livePass.sendSessionEvent(m.adSession, eventName, attributes)
     return
   end if
 
@@ -145,11 +139,6 @@ end sub
 sub onSeek()
   debugLog("[Player Event] onSeek")
 
-  if isAdSessionActive()
-    m.livePass.setPlayerSeekStart(m.adSession, -1)
-    return
-  end if
-
   m.LivePass.setPlayerSeekStart(m.cSession, -1)
 end sub
 
@@ -234,12 +223,6 @@ sub reportPlaybackDeficiency(message, isFatal, closeSession = true)
 
   debugLog("[ConvivaAnalytics] reporting deficiency")
 
-  if isAdSessionActive()
-    m.livePass.reportError(m.adSession, message, isFatal)
-    if closeSession then onAdFinished()
-    return
-  end if
-
   m.livePass.reportError(m.cSession, message, isFatal)
 
   if closeSession
@@ -249,10 +232,6 @@ end sub
 
 function isSessionActive()
   return m.cSession <> invalid
-end function
-
-function isAdSessionActive()
-  return m.adSession <> invalid
 end function
 
 sub buildContentMetadata()
