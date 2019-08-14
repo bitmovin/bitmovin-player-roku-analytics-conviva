@@ -7,6 +7,8 @@ sub init()
   m.video = invalid
   m.PodIndex = 0
   m.adType = ""
+  m.adTracking = invalid
+  m.adTrackingMode = 0
 
   m.contentMetadataBuilder = CreateObject("roSGNode", "ContentMetadataBuilder")
 
@@ -30,6 +32,11 @@ sub internalInit()
     m.LivePass = ConvivaLivePassInitWithSettings(apiKey, cfg)
   else
     m.LivePass = ConvivaLivePassInitWithSettings(apiKey)
+  end if
+
+  m.adTrackingMode = mapAdTrackingMode(m.top.config.adTrackingMode)
+  if m.adTrackingMode > 0
+    m.adTracking = initAdTracking(m.top.player, m.livePass)
   end if
 
   registerEvents()
@@ -150,47 +157,19 @@ sub onSourceUnloaded()
   m.sourceUnloadedTimer.mark() ' start the timer
 end sub
 
-sub onAdBreakStarted()
-  m.LivePass.detachStreamer()
-  m.LivePass.adStart()
+function onAdBreakStarted()
+  m.livePass.detachStreamer()
+  m.livePass.adStart()
 
-  adBreak = m.top.player.callFunc(m.top.player.BitmovinFunctions.AD_LIST)[m.PodIndex]
-  duration = 0
+  if m.adTrackingMode > 0 then m.adTracking.onAdBreakStarted()
+end function
 
-  for each ad in adBreak.ads
-    duration += ad.duration
-  end for
-
-  if adBreak.scheduleTime = 0
-    m.adType = "Pre-roll"
-  else if ((adBreak.scheduleTime + duration) >= m.video.duration)
-    m.adType = "Post-roll"
-  else
-    m.adType = "Mid-roll"
-  end if
-
-  m.PodIndex++
-
-  podInfo = {
-    "podDuration": StrI(duration),
-    "podPosition": m.adType,
-    "podIndex": StrI(m.PodIndex),
-    "absoluteIndex": "1"
-  }
-  m.LivePass.sendSessionEvent(m.cSession, "Conviva.PodStart", podInfo)
-end sub
-
-sub onAdBreakFinished()
+function onAdBreakFinished()
   m.LivePass.adEnd()
   m.LivePass.attachStreamer()
 
-  podInfo = {
-    "podPosition": m.adType,
-    "podIndex": StrI(m.PodIndex),
-    "absoluteIndex": "1"
-  }
-  m.LivePass.sendSessionEvent(m.cSession, "Conviva.PodEnd", podInfo)
-end sub
+  if m.adTrackingMode > 0 then m.adTracking.onAdBreakFinished()
+end function
 
 sub onAdError()
   sendCustomPlaybackEvent("adError", invalid)
@@ -207,6 +186,7 @@ sub createConvivaSession()
   buildContentMetadata()
   m.cSession = m.LivePass.createSession(true, m.contentMetadataBuilder.callFunc("build"), notificationPeriod, m.video)
   m.PodIndex = 0
+  if m.adTracking <> invalid then m.adTracking.updateSession(m.cSession)
   debugLog("[ConvivaAnalytics] start session")
 end sub
 
@@ -344,4 +324,10 @@ function getAd(mediaId)
   end for
 
   return "NA"
+end function
+
+function mapAdTrackingMode(mode)
+  if mode = "AdBreaks" then return 1
+  if mode = "AdExperience" then return 2
+  return 0
 end function

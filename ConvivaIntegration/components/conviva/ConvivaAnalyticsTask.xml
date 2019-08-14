@@ -11,4 +11,5 @@
   <script type="text/brightscript" uri="pkg:/source/conviva/Conviva_Roku.brs" />
   <script type="text/brightscript" uri="pkg:/components/conviva/ConvivaAnalyticsTask.brs" />
   <script type="text/brightscript" uri="pkg:/components/conviva/helper/ToString.brs" />
+  <script type="text/brightscript" uri="pkg:/components/conviva/AdTracking.brs" />
 </component>
