@@ -41,10 +41,10 @@ function initAdTracking(player, livePass, session = invalid)
     m._session = session
   end sub
 
-  this["_mapAdPosition"] = function(adBreak, duration)
+  this["_mapAdPosition"] = function(adBreak, duration)    
     if adBreak.scheduleTime = 0
       adType = "Pre-roll"
-    else if ((adBreak.scheduleTime + duration) >= m._player.callFunc("getDuration"))
+    else if ((adBreak.scheduleTime + duration) >= m._player.findNode("MainVideo").duration)
       adType = "Post-roll"
     else
       adType = "Mid-roll"
