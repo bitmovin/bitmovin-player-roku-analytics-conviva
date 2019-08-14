@@ -6,7 +6,6 @@ sub init()
   m.DEBUG = false
   m.video = invalid
   m.PodIndex = 0
-  m.adType = ""
   m.adTracking = invalid
   m.adTrackingMode = 0
 

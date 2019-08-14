@@ -5,6 +5,7 @@ function initAdTracking(player, livePass, session = invalid)
   this["_livePass"] = livePass
   this["_podIndex"] = 0
   this["_session"] = session
+  this["_adType"] = ""
 
   this["onAdBreakStarted"] = sub()
     adBreak = m._player.callFunc(m._player.BitmovinFunctions.AD_LIST)[m._podIndex]
@@ -14,41 +15,43 @@ function initAdTracking(player, livePass, session = invalid)
       duration += ad.duration
     end for
 
-    if adBreak.scheduleTime = 0
-      m.adType = "Pre-roll"
-    else if ((adBreak.scheduleTime + duration) >= m.video.duration)
-      m.adType = "Post-roll"
-    else
-      m.adType = "Mid-roll"
-    end if
+    m._adType = m._mapAdPosition(adBreak, duration)
 
     m._podIndex++
 
     podInfo = {
       "podDuration": StrI(duration),
-      "podPosition": m.adType,
+      "podPosition": m._adType,
       "podIndex": StrI(m._podIndex),
-      "absoluteIndex": "1"
+      "absoluteIndex": "1" ' Always reporting 1 is sufficient if we can't reliably track it
     }
-    print "sending pod info now"; podInfo
-    print "to session "; m._session
     m._livePass.sendSessionEvent(m._session, "Conviva.PodStart", podInfo)
   end sub
 
   this["onAdBreakFinished"] = sub()
     podInfo = {
-      "podPosition": m.adType,
+      "podPosition": m._adType,
       "podIndex": StrI(m._podIndex),
       "absoluteIndex": "1"
     }
-
-    print "sending pod end info now"; podInfo
     m._livePass.sendSessionEvent(m._session, "Conviva.PodEnd", podInfo)
   end sub
 
   this["updateSession"] = sub(session)
     m._session = session
   end sub
+
+  this["_mapAdPosition"] = function(adBreak, duration)
+    if adBreak.scheduleTime = 0
+      adType = "Pre-roll"
+    else if ((adBreak.scheduleTime + duration) >= m._player.callFunc("getDuration"))
+      adType = "Post-roll"
+    else
+      adType = "Mid-roll"
+    end if
+
+    return adType
+  end function
 
   return this
 end function
