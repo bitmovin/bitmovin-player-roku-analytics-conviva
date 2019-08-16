@@ -24,7 +24,10 @@ sub setup(player, customerKey, convivaConfig)
   m.convivaTask = createObject("roSGNode", "ConvivaAnalyticsTask")
   m.convivaTask.player = player
   m.convivaTask.customerKey = customerKey
+
+  if convivaConfig.adTrackingMode = invalid then convivaConfig.adTrackingMode = m.top.adTrackingModes.BASIC
   m.convivaTask.config = convivaConfig
+
   m.convivaTask.adTrackingModes = m.top.adTrackingModes
   m.convivaTask.control = "RUN"
 end sub
