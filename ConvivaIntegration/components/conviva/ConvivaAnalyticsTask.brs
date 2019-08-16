@@ -322,7 +322,7 @@ function getAd(mediaId)
     end for
   end for
 
-  return "NA"
+  return invalid
 end function
 
 function mapAdTrackingMode(mode)
