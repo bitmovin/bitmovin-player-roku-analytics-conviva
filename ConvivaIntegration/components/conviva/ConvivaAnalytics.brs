@@ -6,6 +6,12 @@ sub init()
     SEND_CUSTOM_APPLICATION_EVENT: "sendCustomApplicationEvent",
     SEND_CUSTOM_PLAYBACK_EVENT: "sendCustomPlaybackEvent"
   }
+
+  m.top.adTrackingModes = {
+    BASIC: 0,
+    AD_BREAK: 1,
+    AD_EXPERIENCE: 2
+  }
 end sub
 
 sub setup(player, customerKey, convivaConfig)
@@ -19,6 +25,7 @@ sub setup(player, customerKey, convivaConfig)
   m.convivaTask.player = player
   m.convivaTask.customerKey = customerKey
   m.convivaTask.config = convivaConfig
+  m.convivaTask.adTrackingModes = m.top.adTrackingModes
   m.convivaTask.control = "RUN"
 end sub
 

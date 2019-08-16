@@ -34,7 +34,7 @@ sub internalInit()
   end if
 
   m.adTrackingMode = mapAdTrackingMode(m.top.config.adTrackingMode)
-  if m.adTrackingMode > 0
+  if m.adTrackingMode > m.top.adTrackingModes.BASIC
     m.adTracking = initAdTracking(m.top.player, m.livePass)
   end if
 
@@ -160,14 +160,14 @@ function onAdBreakStarted()
   m.livePass.detachStreamer()
   m.livePass.adStart()
 
-  if m.adTrackingMode > m.adTracking.adTrackingMode.BASIC then m.adTracking.onAdBreakStarted()
+  if m.adTrackingMode > m.top.adTrackingModes.BASIC then m.adTracking.onAdBreakStarted()
 end function
 
 function onAdBreakFinished()
   m.LivePass.adEnd()
   m.LivePass.attachStreamer()
 
-  if m.adTrackingMode > m.adTracking.adTrackingMode.BASIC then m.adTracking.onAdBreakFinished()
+  if m.adTrackingMode > m.top.adTrackingModes.BASIC then m.adTracking.onAdBreakFinished()
 end function
 
 sub onAdError()
@@ -326,7 +326,7 @@ function getAd(mediaId)
 end function
 
 function mapAdTrackingMode(mode)
-  if mode = "AdBreaks" then return 1
-  if mode = "AdExperience" then return 2
+  if mode = m.top.adTrackingModes.AD_BREAK then return 1
+  if mode = m.top.adTrackingModes.AD_EXPERIENCE then return 2
   return 0
 end function

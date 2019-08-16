@@ -7,6 +7,8 @@
     <function name="reportPlaybackDeficiency" />
     <function name="sendCustomApplicationEvent" />
     <function name="sendCustomPlaybackEvent" />
+
+    <field id="adTrackingModes" type="assocarray"/>
   </interface>
   <script type="text/brightscript" uri="pkg:/components/conviva/ConvivaAnalytics.brs" />
 </component>

@@ -7,12 +7,6 @@ function initAdTracking(player, livePass, session = invalid)
   this["_session"] = session
   this["_adType"] = ""
 
-  this["adTrackingMode"] = {
-    "BASIC": 0,
-    "AD_BREAK": 1,
-    "AD_EXPERIENCE": 2
-  }
-
   this["onAdBreakStarted"] = sub()
     adBreak = m._player.callFunc(m._player.BitmovinFunctions.AD_LIST)[m._podIndex]
     duration = 0
