@@ -160,14 +160,14 @@ function onAdBreakStarted()
   m.livePass.detachStreamer()
   m.livePass.adStart()
 
-  if m.adTrackingMode > 0 then m.adTracking.onAdBreakStarted()
+  if m.adTrackingMode > m.adTracking.adTrackingMode.BASIC then m.adTracking.onAdBreakStarted()
 end function
 
 function onAdBreakFinished()
   m.LivePass.adEnd()
   m.LivePass.attachStreamer()
 
-  if m.adTrackingMode > 0 then m.adTracking.onAdBreakFinished()
+  if m.adTrackingMode > m.adTracking.adTrackingMode.BASIC then m.adTracking.onAdBreakFinished()
 end function
 
 sub onAdError()

@@ -7,6 +7,12 @@ function initAdTracking(player, livePass, session = invalid)
   this["_session"] = session
   this["_adType"] = ""
 
+  this["adTrackingMode"] = {
+    "BASIC": 0,
+    "AD_BREAK": 1,
+    "AD_EXPERIENCE": 2
+  }
+
   this["onAdBreakStarted"] = sub()
     adBreak = m._player.callFunc(m._player.BitmovinFunctions.AD_LIST)[m._podIndex]
     duration = 0
@@ -41,7 +47,7 @@ function initAdTracking(player, livePass, session = invalid)
     m._session = session
   end sub
 
-  this["_mapAdPosition"] = function(adBreak, duration)    
+  this["_mapAdPosition"] = function(adBreak, duration)
     if adBreak.scheduleTime = 0
       adType = "Pre-roll"
     else if ((adBreak.scheduleTime + duration) >= m._player.findNode("MainVideo").duration)
