@@ -33,7 +33,7 @@ sub internalInit()
     m.LivePass = ConvivaLivePassInitWithSettings(apiKey)
   end if
 
-  m.adTrackingMode = mapAdTrackingMode(m.top.config.adTrackingMode)
+  m.adTrackingMode = m.top.config.adTrackingMode
   if m.adTrackingMode > m.top.adTrackingModes.BASIC
     m.adTracking = initAdTracking(m.top.player, m.livePass)
   end if
@@ -323,10 +323,4 @@ function getAd(mediaId)
   end for
 
   return invalid
-end function
-
-function mapAdTrackingMode(mode)
-  if mode = m.top.adTrackingModes.AD_BREAK then return 1
-  if mode = m.top.adTrackingModes.AD_EXPERIENCE then return 2
-  return 0
 end function
