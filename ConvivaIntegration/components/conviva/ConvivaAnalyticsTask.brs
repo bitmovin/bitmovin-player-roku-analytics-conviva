@@ -5,6 +5,9 @@ sub init()
   m.cSession = invalid
   m.DEBUG = false
   m.video = invalid
+  m.PodIndex = 0
+  m.adTracking = invalid
+  m.adTrackingMode = 0
 
   m.contentMetadataBuilder = CreateObject("roSGNode", "ContentMetadataBuilder")
 
@@ -28,6 +31,11 @@ sub internalInit()
     m.LivePass = ConvivaLivePassInitWithSettings(apiKey, cfg)
   else
     m.LivePass = ConvivaLivePassInitWithSettings(apiKey)
+  end if
+
+  m.adTrackingMode = m.top.config.adTrackingMode
+  if m.adTrackingMode > m.top.adTrackingModes.BASIC
+    m.adTracking = initAdTracking(m.top.player, m.livePass)
   end if
 
   registerEvents()
@@ -136,6 +144,7 @@ end sub
 
 sub onSeek()
   debugLog("[Player Event] onSeek")
+
   m.LivePass.setPlayerSeekStart(m.cSession, -1)
 end sub
 
@@ -147,30 +156,36 @@ sub onSourceUnloaded()
   m.sourceUnloadedTimer.mark() ' start the timer
 end sub
 
-sub onAdBreakStarted()
-  m.LivePass.detachStreamer()
-  m.LivePass.adStart()
-end sub
+function onAdBreakStarted()
+  m.livePass.detachStreamer()
+  m.livePass.adStart()
 
-sub onAdBreakFinished()
+  if m.adTrackingMode > m.top.adTrackingModes.BASIC then m.adTracking.onAdBreakStarted()
+end function
+
+function onAdBreakFinished()
   m.LivePass.adEnd()
   m.LivePass.attachStreamer()
-end sub
+
+  if m.adTrackingMode > m.top.adTrackingModes.BASIC then m.adTracking.onAdBreakFinished()
+end function
 
 sub onAdError()
   sendCustomPlaybackEvent("adError", invalid)
-  onAdBreakFinished()
+  onAdFinished()
 end sub
 
 sub onAdSkipped()
   sendCustomPlaybackEvent("adSkipped", invalid)
-  onAdBreakFinished()
+  onAdFinished()
 end sub
 
 sub createConvivaSession()
   notificationPeriod = m.video.notificationinterval
   buildContentMetadata()
   m.cSession = m.LivePass.createSession(true, m.contentMetadataBuilder.callFunc("build"), notificationPeriod, m.video)
+  m.PodIndex = 0
+  if m.adTracking <> invalid then m.adTracking.updateSession(m.cSession)
   debugLog("[ConvivaAnalytics] start session")
 end sub
 
@@ -186,6 +201,7 @@ sub reportPlaybackDeficiency(message, isFatal, closeSession = true)
   if not isSessionActive() then return
 
   debugLog("[ConvivaAnalytics] reporting deficiency")
+
   m.livePass.reportError(m.cSession, message, isFatal)
 
   if closeSession
@@ -297,3 +313,14 @@ end sub
 sub debugLog(message as String)
   if m.DEBUG then ?message
 end sub
+
+function getAd(mediaId)
+  adBreaks = m.top.player.callFunc(m.top.player.BitmovinFunctions.AD_LIST)
+  for each adBreak in adBreaks
+    for each ad in adBreak.ads
+      if ad.id = mediaId then return ad
+    end for
+  end for
+
+  return invalid
+end function
