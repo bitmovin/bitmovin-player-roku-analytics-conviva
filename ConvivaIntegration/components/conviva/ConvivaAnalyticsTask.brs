@@ -85,6 +85,10 @@ sub monitorVideo()
         onAdBreakStarted()
       else if field = m.top.player.BitmovinFields.AD_BREAK_FINISHED
         onAdBreakFinished()
+      else if field = m.top.player.BitmovinFields.AD_STARTED
+        onAdStarted(data)
+      else if field = m.top.player.BitmovinFields.AD_FINISHED
+        onAdFinished()
       else if field = "adError"
         onAdError()
       else if field = m.top.player.BitmovinFields.AD_SKIPPED
@@ -178,6 +182,21 @@ end sub
 sub onAdSkipped()
   sendCustomPlaybackEvent("adSkipped", invalid)
   onAdFinished()
+end sub
+
+sub onAdStarted(adMediaId)
+  ad = getAd(adMediaId)
+  adTags = []
+  adMetadata = ConvivaContentInfo(ad.id, adTags)
+  notificationPeriod = m.video.notificationinterval
+  m.adSession = m.LivePass.createAdSession(m.cSession, false, adMetadata, notificationPeriod, m.video)
+  m.LivePass.setPlayerState(m.adSession, m.LivePass.PLAYER_STATES.PLAYING)
+end sub
+
+sub onAdFinished()
+  if m.adSession = invalid then return
+  m.LivePass.cleanupSession(m.adSession)
+  m.adSession = invalid
 end sub
 
 sub createConvivaSession()
@@ -308,6 +327,8 @@ sub registerAdEvents()
   m.top.player.observeField("adBreakFinished", m.port)
   m.top.player.observeField("adError", m.port)
   m.top.player.observeField("adSkipped", m.port)
+  m.top.player.observeField("adStarted", m.port)
+  m.top.player.observeField("adFinished", m.port)
 end sub
 
 sub debugLog(message as String)
