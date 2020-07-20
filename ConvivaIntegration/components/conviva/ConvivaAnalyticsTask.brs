@@ -76,6 +76,8 @@ sub monitorVideo()
       else if field = m.top.player.BitmovinFields.PLAY
         onPlay()
       else if field = m.top.player.BitmovinFields.SOURCE_UNLOADED
+        onSourceLoaded()
+      else if field = m.top.player.BitmovinFields.SOURCE_UNLOADED
         onSourceUnloaded()
       else if field = "state"
         onStateChanged(data)
@@ -121,6 +123,8 @@ sub onStateChanged(state)
   debugLog("[ConvivaAnalytics] state changed: " + state)
   if state = "finished"
     onPlaybackFinished()
+  else if state = "stopped"
+    endSession()
   end if
   ' Other states are handled by conviva
 end sub
@@ -131,7 +135,6 @@ end sub
 
 sub onPlay()
   debugLog("[Player Event] onPlay")
-
   if not isSessionActive()
     createConvivaSession()
   end if
@@ -146,6 +149,13 @@ sub onSeek()
   debugLog("[Player Event] onSeek")
 
   m.LivePass.setPlayerSeekStart(m.cSession, -1)
+end sub
+
+sub onSourceLoaded()
+  debugLog("[Player Event] onSourceLoaded")
+  if isSessionActive()
+    endSession()
+  end if 
 end sub
 
 sub onSourceUnloaded()
