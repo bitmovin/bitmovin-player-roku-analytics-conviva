@@ -75,7 +75,7 @@ sub monitorVideo()
         onSeek()
       else if field = m.top.player.BitmovinFields.PLAY
         onPlay()
-      else if field = m.top.player.BitmovinFields.SOURCE_UNLOADED
+      else if field = m.top.player.BitmovinFields.SOURCE_LOADED
         onSourceLoaded()
       else if field = m.top.player.BitmovinFields.SOURCE_UNLOADED
         onSourceUnloaded()
@@ -153,7 +153,11 @@ end sub
 
 sub onSourceLoaded()
   debugLog("[Player Event] onSourceLoaded")
-  if isSessionActive()
+  ' On source swap, onSourceUnloaded gets called, then onSourceLoaded gets called. But onSourceUnloaded
+  ' has a 100ms delay that makes it close the session after onSourceLoaded. That is for cases of errors
+  ' but for source swaps, we need to skip that delay, so we kill that timer
+  if m.sourceUnloadedTimer <> invalid and isSessionActive()
+    m.sourceUnloadedTimer = invalid
     endSession()
   end if 
 end sub
@@ -164,6 +168,7 @@ sub onSourceUnloaded()
 
   m.sourceUnloadedTimer = CreateObject("roTimespan")
   m.sourceUnloadedTimer.mark() ' start the timer
+
 end sub
 
 function onAdBreakStarted()
@@ -277,6 +282,7 @@ sub registerPlayerEvents()
   ' Passing everything to m.port so that conviva can intercept and track them
   m.top.player.observeField(m.top.player.BitmovinFields.SEEK, m.port)
   m.top.player.observeField(m.top.player.BitmovinFields.PLAY, m.port)
+  m.top.player.observeField(m.top.player.BitmovinFields.SOURCE_LOADED, m.port)
   m.top.player.observeField(m.top.player.BitmovinFields.SOURCE_UNLOADED, m.port)
 
   ' In case of autoplay we miss the inital play callback.
