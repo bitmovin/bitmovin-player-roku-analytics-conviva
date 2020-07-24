@@ -20,7 +20,9 @@ The recommended and tested version of the Conviva SDK is 2.151.0.36990.**
 3. Ensure that you are in the same network as the roku device
 4. Run `npm run serve:example`
   _(This will copy all needed files from ./ConvivaIntegration to the ./demo folder)_
-5. Zip and deploy the demo to the roku device
+5. Enter your Conviva customer key and gateway URL in `demo/PlayerExample.brs`
+6. Enter your Bitmovin player ID in `demo/manifest`
+7. Zip and deploy the demo to the roku device
 
 ## Usage
 
