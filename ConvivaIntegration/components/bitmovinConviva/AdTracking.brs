@@ -1,8 +1,8 @@
-function initAdTracking(player, livePass, session = invalid)
+function initAdTracking(player, conviva, session = invalid)
   this = {}
 
   this["_player"] = player
-  this["_livePass"] = livePass
+  this["conviva"] = conviva
   this["_podIndex"] = 0
   this["_session"] = session
   this["_adType"] = ""
@@ -25,7 +25,7 @@ function initAdTracking(player, livePass, session = invalid)
       "podIndex": StrI(m._podIndex),
       "absoluteIndex": "1" ' Always reporting 1 is sufficient if we can't reliably track it
     }
-    m._livePass.sendSessionEvent(m._session, "Conviva.PodStart", podInfo)
+    m.conviva.reportAdBreakStarted(m._session, "Client Side", podInfo)
   end sub
 
   this["onAdBreakFinished"] = sub()
@@ -34,9 +34,9 @@ function initAdTracking(player, livePass, session = invalid)
       "podIndex": StrI(m._podIndex),
       "absoluteIndex": "1"
     }
-    m._livePass.sendSessionEvent(m._session, "Conviva.PodEnd", podInfo)
+    m.conviva.reportAdBreakEnded(m._session, "Client Side", podInfo)
   end sub
-
+  
   this["updateSession"] = sub(session)
     m._session = session
   end sub
