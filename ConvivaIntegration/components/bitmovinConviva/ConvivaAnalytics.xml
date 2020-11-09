@@ -3,6 +3,7 @@
   <interface>
     <function name="setup" />
     <function name="updateContentMetadata" />
+	<function name="monitorVideo" />
     <function name="endSession" />
     <function name="reportPlaybackDeficiency" />
     <function name="sendCustomApplicationEvent" />
@@ -10,5 +11,5 @@
 
     <field id="adTrackingModes" type="assocarray"/>
   </interface>
-  <script type="text/brightscript" uri="pkg:/components/conviva/ConvivaAnalytics.brs" />
+  <script type="text/brightscript" uri="pkg:/components/bitmovinConviva/ConvivaAnalytics.brs" />
 </component>

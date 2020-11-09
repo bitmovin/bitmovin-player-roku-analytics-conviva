@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="ContentMetadataBuilder" extends="Group" >
+  <interface>
+    <function name="build" />
+    <function name="setOverrides" />
+    <function name="setPlaybackStarted" />
+    <function name="reset" />
+
+    <!-- setter -->
+    <function name="setAssetName" />
+    <function name="setViewerId" />
+    <function name="setStreamType" />
+    <function name="setApplicationName" />
+    <function name="setCustom" />
+    <function name="setDuration" />
+    <function name="setEncodedFrameRate" />
+    <function name="setDefaultResource" />
+    <function name="setStreamUrl" />
+
+    <!-- getter -->
+    <function name="getAssetName" />
+    <function name="getViewerId" />
+    <function name="getStreamType" />
+    <function name="getApplicationName" />
+    <function name="getCustom" />
+    <function name="getDuration" />
+    <function name="getEncodedFrameRate" />
+    <function name="getDefaultResource" />
+    <function name="getStreamUrl" />
+  </interface>
+
+  <script type="text/brightscript" uri="pkg:/components/bitmovinConviva/ContentMetadataBuilder.brs" />
+</component>
