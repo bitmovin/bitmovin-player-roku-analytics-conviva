@@ -1,0 +1,30 @@
+<!-- ConvivaClient Version: 3.0.9
+     authors: Kedar Marsada <kmarsada@conviva.com>, Mayank Rastogi <mrastogi@conviva.com>
+-->
+
+<?rokuml version = "1.0" encoding = "utf-8" ?>
+<component name = "ConvivaPlayerMonitor" extends = "Task">
+
+<interface>
+	<!-- Fields public to customers -->
+	<field id="customerKey" 		type="String" />
+	<field id="gatewayUrl" 			type="String" />
+	<field id="event" 				type="assocarray" alwaysNotify="true" />
+	<field id="metadata" 			type="assocarray" alwaysNotify="true" />
+	<field id="enableLogging" 		type="Boolean" />
+
+	<!-- Fields internally used -->
+	<field id="myvideo" 		type="node" />
+
+	<!-- APIs exposed to customer -->
+	<function name = "monitorNode"/> <!-- To start monitoring video node-->
+	<function name = "setOrUpdateMetadata" />
+	<!-- Internal Conviva Usage -->
+	<function name = "dispatchEvent"/> <!-- Intention of this API is to dispatch adEvent -->
+
+</interface>
+
+<script type="text/brightscript" uri="./ConvivaCoreLib.brs" />
+<script type="text/brightscript" uri="./ConvivaTask.brs" />
+
+</component>

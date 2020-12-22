@@ -148,8 +148,35 @@ function getStreamUrl()
 end function
 
 sub reset()
-  m.metadataOverrides = ConvivaContentInfo()
-  m.metadata = ConvivaContentInfo()
-  m.contentMetadata = ConvivaContentInfo()
+  m.metadataOverrides = resetMetaData()
+  m.metadata = resetMetaData()
+  m.contentMetadata = resetMetaData()
   m.playbackStarted = false
 end sub
+
+function resetMetaData()
+    metaData = {}
+
+    metaData.tags = {}
+
+    metaData.defaultReportingBitrateKbps = invalid
+
+    metaData.defaultReportingResource = invalid
+
+    metaData.viewerId = invalid
+
+    metaData.playerName = invalid
+
+    metaData.streamUrl = invalid
+
+    metaData.streamUrls = invalid
+
+    metaData.isLive = invalid
+
+    metaData.streamFormat = invalid
+
+    metaData.contentLength = invalid
+
+    metaData.encodedFramerate = invalid
+    return metaData
+end function

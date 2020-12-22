@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="ConvivaAnalytics" extends="Group" >
+  <interface>
+    <function name="setup" />
+    <function name="updateContentMetadata" />
+	<function name="monitorVideo" />
+    <function name="endSession" />
+    <function name="reportPlaybackDeficiency" />
+    <function name="sendCustomApplicationEvent" />
+    <function name="sendCustomPlaybackEvent" />
+
+    <field id="adTrackingModes" type="assocarray"/>
+  </interface>
+  <script type="text/brightscript" uri="pkg:/components/bitmovinConviva/ConvivaAnalytics.brs" />
+</component>
