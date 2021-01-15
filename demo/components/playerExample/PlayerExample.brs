@@ -37,18 +37,20 @@ sub onLoadStatusChanged()
         contentMetadataOverrides = {
             playerName: "Conviva Integration Test Channel",
             viewerId: "MyAwesomeViewerId",
-            tags: {
-                CustomKey: "CustomValue"
-            }
+
         }
-        ' Monitor video early before calling play video
+        contentMetadataOverrides.SetModeCaseSensitive()
+        contentMetadataOverrides.customMetadata = {}
+        contentMetadataOverrides.customMetadata.SetModeCaseSensitive()
+        contentMetadataOverrides.customMetadata["CustomKey"] = "Custom Value"
+
         m.convivaAnalytics.callFunc("monitorVideo", contentMetadataOverrides)
 
         m.bitmovinPlayer.callFunc(m.BitmovinFunctions.SETUP, m.playerConfig)
 
         ' You can then update metadata during session as resource,streamUrl, bitrate and encoding Frame rate
 
-'        m.convivaAnalytics.callFunc("updateContentMetadata", contentMetadataOverrides)
+        '        m.convivaAnalytics.callFunc("updateContentMetadata", contentMetadataOverrides)
     end if
 end sub
 
@@ -68,7 +70,7 @@ sub onSeeked()
     ? "SEEKED: "; m.bitmovinPlayer.seeked
 end sub
 
-function onKeyEvent(key as String, press as Boolean) as Boolean
+function onKeyEvent(key as string, press as boolean) as boolean
     handled = false
     ? "##### key received!"
     if press and (key = "down" or key = "up")
@@ -82,7 +84,7 @@ function onKeyEvent(key as String, press as Boolean) as Boolean
         contentMetadataOverrides = {
             playerName: "Conviva Integration Test Channel 2",
             viewerId: "MyAwesomeViewerId" + key,
-            tags: {
+            customMetadata: {
                 CustomKey: "CustomValue",
                 KeyPress: key
             }
