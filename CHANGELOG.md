@@ -17,3 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [1.0.0]
 ### Added
 - Initial Integration
+
+## [1.1.4] - 2021-01-19
+### Fixed
+- Conviva custom tags issue
