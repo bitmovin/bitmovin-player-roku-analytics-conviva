@@ -19,13 +19,13 @@ function build()
     if m.contentMetadata.assetName = invalid
       m.contentMetadata.assetName = getAssetName()
     end if
-
+    
     m.contentMetadata.viewerId = getViewerId()
     m.contentMetadata.isLive = getStreamType()
     m.contentMetadata.playerName = getApplicationName()
     m.contentMetadata.contentlength = getDuration()
-    m.contentMetadata.customMetadata={}
-	  m.contentMetadata.customMetadata.SetModeCaseSensitive()
+    m.contentMetadata.customMetadata = {}
+    m.contentMetadata.customMetadata.SetModeCaseSensitive()
     m.contentMetadata.customMetadata = getCustom()
   end if
 
@@ -85,7 +85,7 @@ function getApplicationName()
 end function
 
 sub setCustom(value)
-  m.metadata.customMetadata={}
+  m.metadata.customMetadata = {}
   m.metadata.customMetadata.SetModeCaseSensitive()
   m.metadata.customMetadata = value
 end sub
@@ -158,28 +158,28 @@ sub reset()
 end sub
 
 function resetMetaData()
-    metaData = {}
+  metaData = {}
 
-    metaData.customMetadata = {}
+  metaData.customMetadata = {}
 
-    metaData.defaultReportingBitrateKbps = invalid
+  metaData.defaultReportingBitrateKbps = invalid
 
-    metaData.defaultReportingResource = invalid
+  metaData.defaultReportingResource = invalid
 
-    metaData.viewerId = invalid
+  metaData.viewerId = invalid
 
-    metaData.playerName = invalid
+  metaData.playerName = invalid
 
-    metaData.streamUrl = invalid
+  metaData.streamUrl = invalid
 
-    metaData.streamUrls = invalid
+  metaData.streamUrls = invalid
 
-    metaData.isLive = invalid
+  metaData.isLive = invalid
 
-    metaData.streamFormat = invalid
+  metaData.streamFormat = invalid
 
-    metaData.contentLength = invalid
+  metaData.contentLength = invalid
 
-    metaData.encodedFramerate = invalid
-    return metaData
+  metaData.encodedFramerate = invalid
+  return metaData
 end function
