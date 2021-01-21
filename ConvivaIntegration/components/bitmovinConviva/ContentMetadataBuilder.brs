@@ -19,7 +19,6 @@ function build()
     if m.contentMetadata.assetName = invalid
       m.contentMetadata.assetName = getAssetName()
     end if
-
     m.contentMetadata.viewerId = getViewerId()
     m.contentMetadata.isLive = getStreamType()
     m.contentMetadata.playerName = getApplicationName()
