@@ -2,7 +2,7 @@
 title=Video Player Example
 major_version=1
 minor_version=1
-build_version=3
+build_version=4
 
 # Resolution
 ui_resolutions=fhd
