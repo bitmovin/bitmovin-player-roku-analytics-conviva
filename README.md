@@ -14,31 +14,31 @@ The recommended and tested version of the Conviva SDK is 2.151.0.36990.**
 
 1. Run `npm i` to install dependencies
 2. Fetch conviva SDK
-  - Download conviva SDK source file
-  - Rename to `Conviva_Roku.brs`
-  - Put it into `./ConvivaIntegration/source/conviva`
+  - Download conviva SDK
+  - Copy all conviva files and Put it into `./ConvivaIntegration/components/conviva`
 3. Ensure that you are in the same network as the roku device
 4. Run `npm run serve:example`
   _(This will copy all needed files from ./ConvivaIntegration to the ./demo folder)_
-5. Zip and deploy the demo to the roku device
+5. Enter your Conviva customer key and gateway URL in `demo/PlayerExample.brs`
+6. Enter your Bitmovin player ID in `demo/manifest`
+7. Zip and deploy the demo to the roku device
 
 ## Usage
 
 ### Use with Source Code
 
 1. Fetch conviva SDK
-  - Download conviva SDK source file
-  - Rename to `Conviva_Roku.brs`
-  - Create a folder in your source folder called `conviva`
-  - Put the `Conviva_Roku.brs` into the newly created `./source/conviva` folder. _If you want to create a different folder structure you need to change the import of the `ConvivaSDK` within the `ConvivaAnalyticsTask.xml`_
+  - Download conviva SDK files
+  - Create a folder in your components folder called `conviva`
+  - Put the `ConvivaClient.brs`, `ConvivaCoreLib.brs`, `ConvivaTask.brs` & `ConvivaTask.xml` into the newly created `./components/conviva` folder. _If you want to create a different folder structure you need to change the import of the `ConvivaSDK` within the `ConvivaAnalyticsTask.xml`_
 2. Copy following files to your components folder:
-  - `./ConvivaIntegration/components/ConvivaAnalytics.brs`
-  - `./ConvivaIntegration/components/ConvivaAnalytics.xml`
-  - `./ConvivaIntegration/components/ConvivaAnalyticsTask.brs`
-  - `./ConvivaIntegration/components/ConvivaAnalyticsTask.xml`
-  - `./ConvivaIntegration/components/ContentMetadataBuilder.brs`
-  - `./ConvivaIntegration/components/ContentMetadataBuilder.xml`
-  - `./ConvivaIntegration/components/helper`
+  - `./ConvivaIntegration/components/bitmovinConviva/ConvivaAnalytics.brs`
+  - `./ConvivaIntegration/components/bitmovinConviva/ConvivaAnalytics.xml`
+  - `./ConvivaIntegration/components/bitmovinConviva/ConvivaAnalyticsTask.brs`
+  - `./ConvivaIntegration/components/bitmovinConviva/ConvivaAnalyticsTask.xml`
+  - `./ConvivaIntegration/components/bitmovinConviva/ContentMetadataBuilder.brs`
+  - `./ConvivaIntegration/components/bitmovinConviva/ContentMetadataBuilder.xml`
+  - `./ConvivaIntegration/components/bitmovinConviva/helper`
 3. Create a instance of `ConvivaAnalytics`
   ```Brightscript
   m.convivaAnalytics = CreateObject("roSGNode", "ConvivaAnalytics")
@@ -47,9 +47,9 @@ The recommended and tested version of the Conviva SDK is 2.151.0.36990.**
 ### Use as Component Library
 
 1. Fetch conviva SDK
-  - Download conviva SDK source file
-  - Rename to `Conviva_Roku.brs`
-  - Put it into `./ConvivaIntegration/source/conviva`
+  - Download conviva SDK files
+  - Create a folder in your components folder called `conviva`
+  - Put the `ConvivaClient.brs`, `ConvivaCoreLib.brs`, `ConvivaTask.brs` & `ConvivaTask.xml` into the newly created `./components/conviva` folder.
 2. run `npm install && npm run build:component`
 3. Include the created ZIP from the `./dist` folder into your channel as a component library
   ```Brightscript
@@ -117,7 +117,20 @@ _See [ConvivaAnalytics.brs](./ConvivaIntegration/components/ConvivaAnalytics.brs
 
 #### Content Metadata Handling
 
-If you want to override some content metadata attributes you can do so by adding the following:
+If you want to monitor video session you can do so by adding the following:
+
+```Brightscript
+contentMetadataOverrides = {
+  playerName: "Conviva Integration Test Channel",
+  viewerId: "MyAwesomeViewerId",
+  tags: {
+    "CustomKey": "CustomValue"
+  }
+}
+m.convivaAnalytics.callFunc("monitorVideo", contentMetadataOverrides)
+```
+
+If you want to override some content metadata attributes during current session you can do so by adding the following:
 
 ```Brightscript
 contentMetadataOverrides = {

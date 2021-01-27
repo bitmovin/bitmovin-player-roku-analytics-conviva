@@ -29,6 +29,5 @@
     <function name="getStreamUrl" />
   </interface>
 
-  <script type="text/brightscript" uri="pkg:/source/conviva/Conviva_Roku.brs" />
-  <script type="text/brightscript" uri="pkg:/components/ContentMetadataBuilder.brs" />
+  <script type="text/brightscript" uri="pkg:/components/bitmovinConviva/ContentMetadataBuilder.brs" />
 </component>
