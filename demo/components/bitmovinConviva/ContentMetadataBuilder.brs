@@ -19,13 +19,14 @@ function build()
     if m.contentMetadata.assetName = invalid
       m.contentMetadata.assetName = getAssetName()
     end if
-
+    
     m.contentMetadata.viewerId = getViewerId()
     m.contentMetadata.isLive = getStreamType()
     m.contentMetadata.playerName = getApplicationName()
     m.contentMetadata.contentlength = getDuration()
-
-    m.contentMetadata.tags = getCustom()
+    m.contentMetadata.customMetadata = {}
+    m.contentMetadata.customMetadata.SetModeCaseSensitive()
+    m.contentMetadata.customMetadata = getCustom()
   end if
 
   m.contentMetadata.encodedFramerate = getEncodedFrameRate()
@@ -84,17 +85,19 @@ function getApplicationName()
 end function
 
 sub setCustom(value)
-  m.metadata.tags = value
+  m.metadata.customMetadata = {}
+  m.metadata.customMetadata.SetModeCaseSensitive()
+  m.metadata.customMetadata = value
 end sub
 
 function getCustom()
-  if m.metadataOverrides.tags <> invalid and m.metadata.tags <> invalid
-    m.metadataOverrides.tags.Append(m.metadata.tags) ' Keep our internal ones
-    return m.metadataOverrides.tags ' Append is modifying the original object
-  else if m.metadataOverrides.tags <> invalid
-    return m.metadataOverrides.tags
-  else if m.metadata.tags <> invalid
-    return m.metadata.tags
+  if m.metadataOverrides.customMetadata <> invalid and m.metadata.customMetadata <> invalid
+    m.metadataOverrides.customMetadata.Append(m.metadata.customMetadata) ' Keep our internal ones
+    return m.metadataOverrides.customMetadata ' Append is modifying the original object
+  else if m.metadataOverrides.customMetadata <> invalid
+    return m.metadataOverrides.customMetadata
+  else if m.metadata.customMetadata <> invalid
+    return m.metadata.customMetadata
   end if
   return {}
 end function
@@ -155,28 +158,28 @@ sub reset()
 end sub
 
 function resetMetaData()
-    metaData = {}
+  metaData = {}
 
-    metaData.tags = {}
+  metaData.customMetadata = {}
 
-    metaData.defaultReportingBitrateKbps = invalid
+  metaData.defaultReportingBitrateKbps = invalid
 
-    metaData.defaultReportingResource = invalid
+  metaData.defaultReportingResource = invalid
 
-    metaData.viewerId = invalid
+  metaData.viewerId = invalid
 
-    metaData.playerName = invalid
+  metaData.playerName = invalid
 
-    metaData.streamUrl = invalid
+  metaData.streamUrl = invalid
 
-    metaData.streamUrls = invalid
+  metaData.streamUrls = invalid
 
-    metaData.isLive = invalid
+  metaData.isLive = invalid
 
-    metaData.streamFormat = invalid
+  metaData.streamFormat = invalid
 
-    metaData.contentLength = invalid
+  metaData.contentLength = invalid
 
-    metaData.encodedFramerate = invalid
-    return metaData
+  metaData.encodedFramerate = invalid
+  return metaData
 end function
