@@ -1,4 +1,4 @@
-' ConvivaTask Version: 3.0.9
+' ConvivaTask Version: 3.0.10
 ' authors: Kedar Marsada <kmarsada@conviva.com>, Mayank Rastogi <mrastogi@conviva.com>
 '
 ' Monitors node provided as parameter.
@@ -44,7 +44,8 @@ End Sub
 ' Starts monitoring video node.
 ' Creates event loop and waits for events
 sub startMonitor()
-  initConvivaCore(m.top.customerKey, m.top.gatewayUrl, true)
+    ' By default switching off all logs to avoid performance issues'
+  initConvivaCore(m.top.customerKey, m.top.gatewayUrl, false)
   'if m.top.myvideo <> Invalid
 
     ' DE-7608 - Do not default assetname to any pre-defined string. better to keep it invalid
@@ -129,7 +130,6 @@ sub startMonitor()
               contentInfo.isLive = m.top.metadata.isLive
               contentInfo.viewerId = m.top.metadata.viewerId
               contentInfo.contentLength = m.top.metadata.contentLength
-            
               contentInfo.defaultReportingResource = m.top.metadata.defaultReportingResource
               contentInfo.encodedFramerate = m.top.metadata.encodedFramerate
               contentInfo.streamFormat = m.top.metadata.streamFormat
@@ -168,7 +168,6 @@ sub startMonitor()
           contentInfo.isLive = m.top.metadata.isLive
           contentInfo.viewerId = m.top.metadata.viewerId
           contentInfo.contentLength = m.top.metadata.contentLength
-        
           contentInfo.defaultReportingResource = m.top.metadata.defaultReportingResource
           contentInfo.encodedFramerate = m.top.metadata.encodedFramerate
           contentInfo.streamFormat = m.top.metadata.streamFormat
@@ -228,7 +227,6 @@ sub startMonitor()
           contentInfo.contentLength = eventData.contentLength
           contentInfo.isLive = eventData.isLive
           contentInfo.defaultReportingResource = eventData.defaultReportingResource
-          contentInfo.contentLength = eventData.contentLength
           contentInfo.encodedFramerate = eventData.encodedFramerate
           contentInfo.streamFormat = eventData.streamFormat
 
@@ -241,7 +239,6 @@ sub startMonitor()
           adInfo.contentLength = eventData.contentLength
           adInfo.isLive = eventData.isLive
           adInfo.defaultReportingResource = eventData.defaultReportingResource
-          adInfo.contentLength = eventData.contentLength
           adInfo.encodedFramerate = eventData.encodedFramerate
           adInfo.streamFormat = eventData.streamFormat
 
@@ -254,7 +251,7 @@ sub startMonitor()
         else if eventData.type = "ConvivaLog"
           if m.contentSession <> invalid and m.LivePass <> invalid
             m.LivePass.log(eventData.msg)
-          end if
+            end if
         else
           ' Method is common to all integrations using ConvivaClient APIs for ad insights integration'
           ' Present in ConvivaAIMonitor.brs'
