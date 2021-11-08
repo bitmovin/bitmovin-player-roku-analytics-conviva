@@ -19,4 +19,5 @@
   <script type="text/brightscript" uri="pkg:/components/bitmovinConviva/ConvivaAnalyticsTask.brs" />
   <script type="text/brightscript" uri="pkg:/components/bitmovinConviva/helper/ToString.brs" />
   <script type="text/brightscript" uri="pkg:/components/bitmovinConviva/AdTracking.brs" />
+  <script type="text/brightscript" uri="pkg:/source/yospace/Internal/YoVersion.brs" />
 </component>
