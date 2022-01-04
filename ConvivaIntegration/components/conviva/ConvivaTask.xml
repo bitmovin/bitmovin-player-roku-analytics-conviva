@@ -1,4 +1,4 @@
-<!-- ConvivaClient Version: 3.0.9
+<!-- ConvivaClient Version: 3.0.15
      authors: Kedar Marsada <kmarsada@conviva.com>, Mayank Rastogi <mrastogi@conviva.com>
 -->
 
@@ -7,8 +7,8 @@
 
 <interface>
 	<!-- Fields public to customers -->
-	<field id="customerKey" 		type="String" />
-	<field id="gatewayUrl" 			type="String" />
+	<field id="customerKey" 		type="string" />
+	<field id="gatewayUrl" 			type="string" />
 	<field id="event" 				type="assocarray" alwaysNotify="true" />
 	<field id="metadata" 			type="assocarray" alwaysNotify="true" />
 	<field id="enableLogging" 		type="Boolean" />

@@ -1,6 +1,6 @@
 ' Copyright: Conviva Inc. 2011-2012
 ' Conviva LivePass Brightscript Client library for Roku devices
-' LivePass Version: 3.0.9
+' LivePass Version: 3.0.15
 ' authors: Alex Roitman <shura@conviva.com>
 '          George Necula <necula@conviva.com>
 '
@@ -284,10 +284,14 @@ function ConvivaLivePassInitWithSettings (apiKey as object, convivaSettings=inva
     self.platformMeta = {
         sch : "rk1",  ' The schema name
         m : self.devinfo.GetModel(),
-        v : self.devinfo.GetVersion(),
         dt : self.devinfo.GetDisplayType(),
         dm : self.devinfo.GetDisplayMode()
     }
+    ' Roku 9.2 and above supports GetOSVersion method and it '
+    if self.devinfo.GetOSVersion() <> invalid
+      self.platformMeta.v = self.devinfo.GetOSVersion().major +"."+self.devinfo.GetOSVersion().minor +"."+self.devinfo.GetOSVersion().revision+". build "+self.devinfo.GetOSVersion().build
+    end if
+
     self.utils.log("CWS init done")
 
     ''
@@ -926,20 +930,25 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
     self.lastResponseTimeMs = 0
     self.isReady = false
     self.externalBitrateReporting = false
-    if options <> invalid and options.Count() > 0 and options.DoesExist(cws.OPTION_EXTERNAL_BITRATE_REPORTING) and options[cws.OPTION_EXTERNAL_BITRATE_REPORTING]
+    self.externalCdnServerIpReporting = false
+    self.moduleName = invalid
+    if options <> invalid and options.Count() > 0
+      if options.DoesExist(cws.OPTION_EXTERNAL_BITRATE_REPORTING) and options[cws.OPTION_EXTERNAL_BITRATE_REPORTING]
         self.externalBitrateReporting = true
+      end if
+      if options.DoesExist(cws.OPTION_EXTERNAL_CDN_REPORTING) and options[cws.OPTION_EXTERNAL_CDN_REPORTING]
+        self.externalCdnServerIpReporting = true
+      end if
+      if options.moduleName <> Invalid
+        self.moduleName = options.moduleName
+      end if
     end if
 
-    self.externalCdnServerIpReporting = false
-    if options <> invalid and options.Count() > 0 and options.DoesExist(cws.OPTION_EXTERNAL_CDN_REPORTING) and options[cws.OPTION_EXTERNAL_CDN_REPORTING]
-        self.externalCdnServerIpReporting = true
-    end if
     self.cdnServerStreamUrl = invalid
 
     self.bl = -1
     self.pht = -1
     self.fw = invalid
-    self.fwv = invalid
     self.cws = cws
     ' DE-2710: Create a copy of session.evs instead of directly copying into hb
     self.evs = []
@@ -1044,7 +1053,6 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
         self.streamFormat = contentInfo.streamFormat
     end if
     self.fw = "Roku Scene Graph"
-    self.fwv = "version " + cws.platformMeta["v"].Mid(2,3) + " . build " + cws.platformMeta["v"].Mid(8,4)
 
     if self.streamFormat <> invalid and self.streamFormat <> "mp4" and self.streamFormat <> "ism" and self.streamFormat <> "hls" and self.streamFormat <> "dash" then
         self.utils.log("Received invalid streamFormat from player: " + self.streamFormat)
@@ -1078,16 +1086,21 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
         pm : cws.platformMeta,
         caps: cws.cfg.caps,
         fw: self.fw,
-        fwv: self.fwv
+        ct: self.devinfo.GetConnectionType()
     }
+    if self.moduleName <> invalid
+      self.hb.cc = {}
+      self.hb.cc.mn = self.moduleName
+    end if
+    self.psm.connType = self.hb.ct
+
     if sessionType = self.cws.SESSION_TYPE.AD
         self.hb.ad = true
     end if
 
-    ' DE-2710: fw and fwv are added to pm as well as at HB level
+    ' DE-2710: fw is added to pm as well as at HB level
     if self.hb.pm <> invalid
         self.hb.pm.fw = self.fw
-        self.hb.pm.fwv = self.fwv
     end if
 
     vid = contentInfo.viewerId
@@ -1112,7 +1125,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
     self.hb.sst = self.sessionStartTimeMs ' PD-15624: add "sst" field
     ' PD-10341: add "lv" field to heartbeat
     if self.global = false
-        if contentInfo.assetName <> invalid
+        if contentInfo.assetName <> invalid and contentInfo.assetName <> ""
             self.hb.an = contentInfo.assetName
         else
             self.utils.log("Missing asset name during session creation")
@@ -1210,6 +1223,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
         self.hb.st = sessionTimeMs
 
         if self.global = false
+
             pm = self.psm.cwsPsmGetPlayerMeasurements(sessionTimeMs)
             for each st in pm
                 if st = "tags"
@@ -1234,6 +1248,10 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
                 if self.hb.lg <> invalid then
                     self.hb.delete("lg")
                 end if
+           end if
+           ' Remove csi field from HB if collection is disabled'
+           if pm["csi"] = Invalid
+             self.hb.delete("csi")
            end if
         end if
         self.hb.clid = self.cws.clId
@@ -1292,6 +1310,9 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
             for each tk in metadata.tags
                 evt.new.tags[tk] = metadata.tags[tk]
             end for
+        end if
+        if self.devinfo <> invalid
+          evt.new.ct = self.devinfo.GetConnectionType()
         end if
 
         if evt <> invalid and evt.new.count() > 0 then ' sendCWSStateChangeEvent only if atleast one item is changed
@@ -1791,6 +1812,21 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
         end if
     end function
 
+    self.cwsSessOnVideoResolutionChange = function (width as integer, height as integer) as void
+        self = m
+        if self = invalid then
+            self.log("Cannot change video resolution for invalid session")
+            return
+        end if
+        if width = self.psm.videowidth and height = self.psm.videoheight then
+            return
+        end if
+        evt = self.psm.cwsPsmOnVideoResolutionChange(width, height)
+        if evt <> invalid then
+            self.cwsSessSendEvent(evt.t, evt)
+        end if
+    end function
+
     self.cwsSessOnResourceChange = function (newStreamUrl as dynamic) as void
         self = m
         self.log("cwsSessOnResourceChange "+ newStreamUrl)
@@ -1864,7 +1900,6 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
     ' PD-8962: Smooth Streaming support
     self.updateBitrateFromEventInfo = function (streamUrl as string, streamBitrate as integer, sequence as integer, segTypeReceived as dynamic) as void
         self = m
-        print "updateBitrateFromEventInfo:segTypeReceived=";segTypeReceived
         if self.streamFormat = "ism" or self.streamFormat = "dash" or self.streamFormat = "hls" then
             if segTypeReceived <> invalid
                 segType = segTypeReceived
@@ -1872,7 +1907,6 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
                 segType = self.utils.getSegTypeFromSegInfo(streamUrl, sequence)
             end if
 
-            print "updateBitrateFromEventInfo:segTypeReceived=";segType
 
             ' DE-5147: Bitrate calculation for HLS Demuxed stream gives segType as 0 for video
             ' considering 0/2 for video segment types
@@ -1926,7 +1960,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
                 self.cwsSessOnStateChange(self.ps.stopped, invalid)
             end if
         else if type(convivaSceneGraphVideoEvent) = "roSGNodeEvent"
-            self.cwsSessOnConnectionTypeChange(self.devinfo.GetConnectionInfo().type)
+            self.cwsSessOnConnectionTypeChange(self.devinfo.GetConnectionType())
             info = convivaSceneGraphVideoEvent.getData()
             if convivaSceneGraphVideoEvent.getField() = "streamInfo"
                 if info.isResume and info.isUnderrun
@@ -2037,7 +2071,6 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
             else if convivaSceneGraphVideoEvent.getField() = "streamingSegment" Then
                 if info <> invalid
                     self.log("videoEvent: streamingSegment segBitrateBps="+formatJSON(info))
-                    print("externalBitrateReporting=");self.externalBitrateReporting
                     ' updateBitrateFromEventInfo API will set proper bitrate for SS by combining Audio and Video Bitrates
                     ' DE-5167: Converting segSequence of integer type to integer returns different value
                     if self.externalBitrateReporting = false
@@ -2061,6 +2094,14 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
                             self.prevBitrateKbps = self.totalBitrate
                         end if
                     end if
+
+                    'Report video resolution - Roku OS 9.4 and above'
+                    if info.Width <> invalid and info.Height <> invalid
+                        if info.Width > 0 and info.Height > 0
+                            self.cwsSessOnVideoResolutionChange(info.Width, info.Height)
+                        end if
+                    end if
+
                 end if
             else if convivaSceneGraphVideoEvent.getField() = "downloadedSegment" Then
                 self.log("videoEvent: downloadedSegment sequence="+stri(info.segSequence)+" SegType="+stri(info.SegType)+" SegUrl="+info.SegUrl)
@@ -2102,6 +2143,8 @@ function cwsConvivaPlayerState(sess as object) as object
     self.joinTimeMs = -1
     self.contentLength = -1
     self.encodedFramerate = -1
+    self.videoWidth = -1
+    self.videoHeight = -1
 
     self.totalPlayingKbits = 0
     self.curState = self.session.ps.stopped
@@ -2114,7 +2157,7 @@ function cwsConvivaPlayerState(sess as object) as object
     else
         self.utils.log("Missing resource during session creation")
     end if
-    
+
     self.connType = invalid
     self.cdnServerIP = invalid
     self.tags = {}
@@ -2193,6 +2236,26 @@ function cwsConvivaPlayerState(sess as object) as object
         return evt
     end function
 
+    self.cwsPsmOnVideoResolutionChange = function (width as integer, height as integer) as object
+        self = m
+        evt = {
+            t: "CwsStateChangeEvent",
+            new: {
+                w: width,
+                h: height
+            }
+        }
+        if (self.videoWidth <> invalid and self.videoWidth <> -1) and (self.videoHeight <> invalid and self.videoHeight <> -1)
+            evt.old = {
+                w: self.videoWidth,
+                h: self.videoHeight
+            }
+        end if
+        self.videoWidth = width
+        self.videoHeight = height
+        return evt
+    end function
+
     self.cwsPsmOnConnectionTypeChange = function (connType as string) as object
         self = m
         if self.connType = connType then
@@ -2267,6 +2330,7 @@ function cwsConvivaPlayerState(sess as object) as object
         end if
     end function
 
+
     self.cwsPsmGetPlayerMeasurements = function (sessionTimeMs as integer) as object
         self = m
         data = {
@@ -2295,6 +2359,14 @@ function cwsConvivaPlayerState(sess as object) as object
             data.cl = self.contentLength
         end if
 
+        if self.videoWidth <> -1 then
+            data.w = self.videoWidth
+        end if
+
+        if self.videoHeight <> -1 then
+            data.h = self.videoHeight
+        end if
+
         if self.playerName <> invalid
             data.pn = self.playerName
         end if
@@ -2314,7 +2386,6 @@ function cwsConvivaPlayerState(sess as object) as object
         end if
         if self.session.fw <> invalid
             data.fw = self.session.fw
-            data.fwv = self.session.fwv
         end if
         if self.connType <> invalid
             data.ct = self.connType
@@ -2334,7 +2405,7 @@ end function
 
 ' Copyright: Conviva Inc. 2011-2012
 ' Conviva LivePass Brightscript Client library for Roku devices
-' LivePass Version: 3.0.9
+' LivePass Version: 3.0.15
 ' authors: Alex Roitman <shura@conviva.com>
 '          George Necula <necula@conviva.com>
 '
@@ -2479,7 +2550,7 @@ function cwsConvivaUtils()  as object
 
       ' Read local data
       self.readLocalData = function (key as string) as string
-          sec = CreateObject("roRegistrySection", "Conviva")
+          sec = CreateObject("roRegistrySection", "ConvivaPersistent")
           if sec.exists(key) then
               return sec.read(key)
           else
@@ -2489,14 +2560,14 @@ function cwsConvivaUtils()  as object
 
        ' Write local data
        self.writeLocalData = function (key as string, value as string)
-          sec = CreateObject("roRegistrySection", "Conviva")
+          sec = CreateObject("roRegistrySection", "ConvivaPersistent")
           sec.write(key, value)
           sec.flush()
        end function
 
        ' Delete local data
        self.deleteLocalData = function ( )
-           sec = CreateObject("roRegistrySection", "Conviva")
+           sec = CreateObject("roRegistrySection", "ConvivaPersistent")
            keyList = sec.GetKeyList ()
            For Each key In keyList
                m.log("Storage : deleting "+ key)
@@ -3263,7 +3334,7 @@ End Function
 function cwsConvivaSettings() as object
     cfg = {}
     ' The next line is changed by set_versions
-    cfg.version = "3.0.9"
+    cfg.version = "3.0.15"
 
     cfg.enableLogging = false                      ' change to false to disable debugging output
     cfg.defaultHeartbeatInvervalMs = 20000         ' 20 sec HB interval
@@ -3287,7 +3358,7 @@ function cwsConvivaSettings() as object
 
     return cfg
 end function
-' ConvivaAIMonitor Version: 3.0.9
+' ConvivaAIMonitor Version: 3.0.15
 ' authors: Kedar Marsada <kmarsada@conviva.com>, Mayank Rastogi <mrastogi@conviva.com>
 '
 ' Common script that is used by Conviva tasks to perform ad insights integrations.
@@ -3391,8 +3462,11 @@ sub handleAdEvent(adData)
                 else
                     m.notificationInterval = m.top.myvideo.notificationInterval
                 end if
-
-                m.adSession = m.ConvivaLpObj.createAdSession(m.ConvivaLpObj.session, true, adInfo, m.notificationInterval, m.top.myvideo)
+                options = {}
+                if adData.moduleName <> invalid
+                  options.moduleName = adData.moduleName
+                end if
+                m.adSession = m.ConvivaLpObj.createAdSession(m.ConvivaLpObj.session, true, adInfo, m.notificationInterval, m.top.myvideo, options)
                 m.ConvivaLpObj.setPlayerState(m.adSession, m.ConvivaLpObj.PLAYER_STATES.BUFFERING)
             end if
         else if adData.type = "ConvivaAdStart" then
@@ -3478,7 +3552,12 @@ sub handleAdEvent(adData)
                 else
                     m.notificationInterval = m.top.myvideo.notificationInterval
                 end if
-                m.adSession = m.ConvivaLpObj.createAdSession(m.ConvivaLpObj.session, true, adInfo, m.notificationInterval, m.top.myvideo)
+                options = {}
+                if adData.moduleName <> invalid
+                  options.moduleName = adData.moduleName
+                end if
+
+                m.adSession = m.ConvivaLpObj.createAdSession(m.ConvivaLpObj.session, true, adInfo, m.notificationInterval, m.top.myvideo, options)
                 m.ConvivaLpObj.setPlayerState(m.adSession, m.ConvivaLpObj.PLAYER_STATES.PLAYING)
             else
                 m.ConvivaLpObj.updateContentMetadata(m.adSession, adInfo)
