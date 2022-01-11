@@ -843,7 +843,7 @@ self.OnYoSpaceAdBreakStart = function (breakInfo = invalid as Dynamic)
 
   adMetadata = {}
   adMetadata.SetModeCaseSensitive()
-  if breakInfo.GetStart() = 0 and self.convivaYoSpaceSession.GetSession()<> invalid and self.convivaYoSpaceSession.GetSession()._CLASSNAME <> "YSLiveSession"
+  if breakInfo.GetStart() = 0 and self.convivaYoSpaceSession <> invalid and self.convivaYoSpaceSession._CLASSNAME <> "YSLiveSession"
       adMetadata["podPosition"] = "Pre-roll"
   else
       adMetadata["podPosition"] = "Mid-roll"
@@ -866,17 +866,18 @@ self.OnYoSpaceAdStart = function (adData = invalid as Dynamic)
   self = globalAA.ConvivaClient
   adInfo = {}
   adInfo.SetModeCaseSensitive()
-  if self.convivaYoSpaceSession.GetSession() <> invalid
-    advert = self.convivaYoSpaceSession.GetSession().GetCurrentAdvert()
+  if self.convivaYoSpaceSession <> invalid
+    advert = self.convivaYoSpaceSession.GetCurrentAdvert()
     if (advert <> invalid)
-        if (advert.GetAdvert() <> invalid)
-            adInfo.adid = advert.GetAdvert().GetId()
-            adInfo.adsystem = advert.GetAdvert().GetAdSystem()
-            adInfo.assetName = advert.GetAdvert().GetAdTitle()
-            adInfo.advertiser = advert.GetAdvert().GetAdvertiser()
+        if (advert<> invalid)
+            adInfo.adid = advert.GetAdvertID()
+            if advert.GetProperty("AdSystem") <> invalid then adInfo.adsystem = advert.GetProperty("AdSystem").GetValue()
+            if advert.GetProperty("AdTitle") <> invalid then adInfo.assetName = advert.GetProperty("AdTitle").GetValue()
+            if advert.GetProperty("Advertiser") <> invalid then adInfo.advertiser = advert.GetProperty("Advertiser").GetValue()
+            
             ' CSR-4960 fix for sequence
-            if advert.GetAdvert().GetSequence() <> invalid
-            adInfo.sequence = ""+advert.GetAdvert().GetSequence()
+            if advert.GetSequence() <> invalid
+            adInfo.sequence = advert.GetSequence().toStr()
             end if
         end if
         if advert.isFiller() = true
@@ -885,26 +886,26 @@ self.OnYoSpaceAdStart = function (adData = invalid as Dynamic)
             adInfo.isSlate = "false"
         end if
 
-        if (advert.GetBreak()<> invalid and advert.GetBreak().GetStart() = 0 and self.convivaYoSpaceSession.GetSession()._CLASSNAME <> "YSLiveSession")
+        if (self.convivaYoSpaceSession.GetCurrentAdBreak()<> invalid and self.convivaYoSpaceSession.GetCurrentAdBreak().GetStart() = 0 and self.convivaYoSpaceSession._CLASSNAME <> "YSLiveSession")
             adInfo.position = "Pre-roll"
         else
             adInfo.position = "Mid-roll"
         end if
-        adInfo.creativeId = advert.GetCreativeId()
+        adInfo.creativeId = advert.GetLinearCreative()
         adInfo.contentLength = Int(advert.GetDuration())
     end if
-    if self.convivaYoSpaceSession.GetSession()._CLASSNAME <> "YSLiveSession"
+    if self.convivaYoSpaceSession._CLASSNAME <> "YSLiveSession"
         adInfo.isLive = false
     else
         adInfo.isLive = true
     end if
   end if
-  adInfo.streamUrl = self.convivaYoSpaceSession.GetMasterPlaylist()
+  adInfo.streamUrl = self.convivaYoSpaceSession.GetPlaybackUrl()
   adInfo.mediaFileApiFramework = "NA"
   adInfo.technology = "Server Side"
-  adInfo.streamFormat = self.convivaYoSpaceSession.GetSession().GetStreamType()
+  adInfo.streamFormat = self.convivaYoSpaceSession._data.streamtype
   adInfo.adManagerName = "YoSpace SDK"
-  adInfo.adManagerVersion = self.convivaYoSpaceSession.GetVersion()
+  adInfo.adManagerVersion = yo_vers_get()
   adInfo.adstitcher = "YoSpace CSM"
   adInfo.moduleName = "YS"
   self.reportAdStart(self.convivaYoSpaceVideoNode, adInfo)
