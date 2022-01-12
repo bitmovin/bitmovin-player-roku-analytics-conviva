@@ -1562,6 +1562,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
     end function
 
     self.cwsOnResponse = function (resp_txt as string) as void
+        try
         self = m
         selectionAvailable = false
         receivedTime = CreateObject("roDateTime")
@@ -1599,13 +1600,13 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
             'return
         end if
 
-        if self.sessionId <> int(resp.sid) then
+        if resp.sid = invalid or self.sessionId <> int(resp.sid) then
             ' DE-5147: Just log error if sid in response is different from the sessionId
             'self.cwsHbFailure(self, false, "Invalid session")
             self.log("Got response for session: "+str(resp.sid)+" while in session: "+stri(self.sessionId))
-            'return
+            return
         end if
-
+        
         'todo do we really want to ignore out of order heartbeats
         if self.hb.seq - 1 <> resp.seq then
             'self.cwsHbFailure(self, false, "old heartbeat")
@@ -1676,6 +1677,8 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
                 hbinfo.err = "ok"
             end if
         end for
+        catch e
+        end try
     end function
 
     self.cwsSessGetHb = function () as string
