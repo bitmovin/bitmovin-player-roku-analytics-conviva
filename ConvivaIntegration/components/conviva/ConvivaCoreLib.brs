@@ -1604,7 +1604,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
             ' DE-5147: Just log error if sid in response is different from the sessionId
             'self.cwsHbFailure(self, false, "Invalid session")
             self.log("Got response for session: "+str(resp.sid)+" while in session: "+stri(self.sessionId))
-            return
+            'return
         end if
         
         'todo do we really want to ignore out of order heartbeats

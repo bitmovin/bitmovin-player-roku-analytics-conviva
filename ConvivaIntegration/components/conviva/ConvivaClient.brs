@@ -871,6 +871,7 @@ self.OnYoSpaceAdStart = function (adData = invalid as Dynamic)
     if (advert <> invalid)
         if (advert<> invalid)
             adInfo.adid = advert.GetAdvertID()
+            adInfo.advertiser = ""
             if advert.GetProperty("AdSystem") <> invalid then adInfo.adsystem = advert.GetProperty("AdSystem").GetValue()
             if advert.GetProperty("AdTitle") <> invalid then adInfo.assetName = advert.GetProperty("AdTitle").GetValue()
             if advert.GetProperty("Advertiser") <> invalid then adInfo.advertiser = advert.GetProperty("Advertiser").GetValue()
@@ -891,7 +892,7 @@ self.OnYoSpaceAdStart = function (adData = invalid as Dynamic)
         else
             adInfo.position = "Mid-roll"
         end if
-        adInfo.creativeId = advert.GetLinearCreative()
+        adInfo.creativeId = advert.GetLinearCreative().GetCreativeIdentifier()
         adInfo.contentLength = Int(advert.GetDuration())
     end if
     if self.convivaYoSpaceSession._CLASSNAME <> "YSLiveSession"
