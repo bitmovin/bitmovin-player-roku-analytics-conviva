@@ -1,4 +1,4 @@
-<!-- ConvivaClient Version: 3.0.15
+<!-- ConvivaClient Version: 3.3.0
      authors: Kedar Marsada <kmarsada@conviva.com>, Mayank Rastogi <mrastogi@conviva.com>
 -->
 
@@ -12,6 +12,7 @@
 	<field id="event" 				type="assocarray" alwaysNotify="true" />
 	<field id="metadata" 			type="assocarray" alwaysNotify="true" />
 	<field id="enableLogging" 		type="Boolean" />
+	<field id="disableErrorReporting" type="Boolean" value="false" />
 
 	<!-- Fields internally used -->
 	<field id="myvideo" 		type="node" />
