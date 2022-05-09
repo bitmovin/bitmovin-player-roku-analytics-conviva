@@ -25,7 +25,7 @@ function initAdTracking(player, conviva, session = invalid)
       "podIndex": StrI(m._podIndex),
       "absoluteIndex": "1" ' Always reporting 1 is sufficient if we can't reliably track it
     }
-    m.conviva.reportAdBreakStarted(m._session, "Client Side", podInfo)
+    m.conviva.reportAdBreakStarted(m._session, "Server Side", podInfo)
   end sub
 
   this["onAdBreakFinished"] = sub()
@@ -34,7 +34,7 @@ function initAdTracking(player, conviva, session = invalid)
       "podIndex": StrI(m._podIndex),
       "absoluteIndex": "1"
     }
-    m.conviva.reportAdBreakEnded(m._session, "Client Side", podInfo)
+    m.conviva.reportAdBreakEnded(m._session, "Server Side", podInfo)
   end sub
   
   this["updateSession"] = sub(session)
