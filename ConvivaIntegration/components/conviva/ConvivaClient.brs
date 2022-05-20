@@ -571,8 +571,8 @@ function ConvivaClientInstance(settings as object)
             yoSpaceSession.RegisterPlayer(player)
         else if yoSpaceSession.AddAnalyticObserver <> invalid
             player    = {}
-            player["OnAdvertBreakStart"]    = self.OnYoSpaceAdBreakStartV3
-            player["OnAdvertStart"]     = self.OnYoSpaceAdStartV3
+            player["OnAdvertBreakStart"]    = self.OnYoSpaceAdBreakStart
+            player["OnAdvertStart"]     = self.OnYoSpaceAdStart
             player["OnAdvertEnd"]       = self.OnYoSpaceAdEnd
             player["OnAdvertBreakEnd"]      = self.OnYoSpaceAdBreakEnd
             yoSpaceSession.AddAnalyticObserver(YoAnalyticEventObserver(player, self))
@@ -848,24 +848,6 @@ end function
   end function
 
   self.OnYoSpaceAdBreakStart = function (breakInfo = invalid as Dynamic)
-    globalAA = getGlobalAA()
-    self = globalAA.ConvivaClient
-    
-    adMetadata = {}
-    adMetadata.SetModeCaseSensitive()
-    if breakInfo <> invalid
-        if breakInfo.GetStart() = 0 and self.convivaYoSpaceSession.GetSession()<> invalid and self.convivaYoSpaceSession.GetSession()._CLASSNAME <> "YSLiveSession"
-            adMetadata["podPosition"] = "Pre-roll"
-        else
-            adMetadata["podPosition"] = "Mid-roll"
-        end if
-        adMetadata["podDuration"] = Int(breakInfo.GetDuration())
-    end if
-
-    self.reportAdBreakStarted(self.convivaYoSpaceVideoNode, self.AD_TYPE.SERVER_SIDE, adMetadata)
-  end function
-
-  self.OnYoSpaceAdBreakStartV3 = function (breakInfo = invalid as Dynamic)
     globalAA = getGlobalAA()
     self = globalAA.ConvivaClient
     
