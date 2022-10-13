@@ -85,7 +85,8 @@ sub startMonitor()
     m.LivePass.adStart()
   'end if
 
-  while(true)
+
+  while m.global.playingVideo = true
     if m.LivePass <> invalid
       msg = ConvivaWait(0, m.port, invalid)
     else
