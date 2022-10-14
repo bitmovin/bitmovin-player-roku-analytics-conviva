@@ -1,4 +1,4 @@
-' ConvivaTask Version: 3.3.0
+' ConvivaTask
 ' authors: Kedar Marsada <kmarsada@conviva.com>, Mayank Rastogi <mrastogi@conviva.com>
 '
 ' Monitors node provided as parameter.
@@ -97,6 +97,7 @@ sub startMonitor()
     ' monitorVideoNode must be called for every asset.
     if msgType = "roUrlEvent"
       if m.LivePass.isCleanupContentSessionSuccessful()
+        m.top.myvideo = invalid
         exit while
       end if
     end if
@@ -111,15 +112,13 @@ sub startMonitor()
             m.LivePass.attachStreamer()
           else
             if m.contentSession = invalid
-              assetName = ""
-              if assetName = "" and m.top.metadata.assetName <> invalid
+            ' DE-7608 - Do not default assetname to any pre-defined string. better to keep it invalid
+              assetName = invalid
+              if m.top.metadata.assetName <> invalid
                 assetName = m.top.metadata.assetName
               end if
-              if m.top.myvideo.content <> invalid and assetName = ""
+              if m.top.myvideo <> invalid and m.top.myvideo.content <> invalid and assetName = invalid
                 assetName = m.top.myvideo.content.title
-              end if
-              if assetName = ""
-                assetName = "No assetName detected"
               end if
               contentInfo = ConvivaContentInfo(assetName, m.top.metadata.customMetadata)
               if m.top.metadata.streamUrl <> invalid or m.top.metadata.streamUrl = ""
@@ -148,16 +147,14 @@ sub startMonitor()
           end if
         end if
       else if msg.GetField() = "content" then
-        'Create content session when content field is set on video node. (first event). After this, video play is called from application
-          assetName = ""
-          if assetName = "" and m.top.metadata.assetName <> invalid
+      'Create content session when content field is set on video node. (first event). After this, video play is called from application
+          ' DE-7608 - Do not default assetname to any pre-defined string. better to keep it invalid
+          assetName = invalid
+          if m.top.metadata.assetName <> invalid
             assetName = m.top.metadata.assetName
           end if
-          if m.top.myvideo.content <> invalid and assetName = ""
+          if m.top.myvideo <> invalid and m.top.myvideo.content <> invalid and assetName = invalid
             assetName = m.top.myvideo.content.title
-          end if
-          if assetName = ""
-            assetName = "No assetName detected"
           end if
           contentInfo = ConvivaContentInfo(assetName, m.top.metadata.customMetadata)
           if m.top.metadata.streamUrl <> invalid or m.top.metadata.streamUrl = ""
@@ -260,7 +257,15 @@ sub startMonitor()
         else if eventData.type = "ConvivaLog"
           if m.contentSession <> invalid and m.LivePass <> invalid
             m.LivePass.log(eventData.msg)
-            end if
+          end if
+        else if eventData.type = "ConvivaUserPreferenceForDataCollection"
+          if m.LivePass <> invalid
+            m.LivePass.setUserPreferenceForDataCollection(eventData.prefs)
+          end if
+        else if eventData.type = "ConvivaUserPreferenceForDataDeletion"
+          if m.LivePass <> invalid
+            m.LivePass.setUserPreferenceForDataDeletion(eventData.prefs)
+          end if
         else
           ' Method is common to all integrations using ConvivaClient APIs for ad insights integration'
           ' Present in ConvivaAIMonitor.brs'

@@ -1,6 +1,5 @@
 ' Copyright: Conviva Inc. 2011-2012
 ' Conviva LivePass Brightscript Client library for Roku devices
-' LivePass Version: 3.3.0
 ' authors: Alex Roitman <shura@conviva.com>
 '          George Necula <necula@conviva.com>
 '
@@ -60,6 +59,11 @@ function ConvivaContentInfo (assetName = invalid as dynamic, tags = invalid as d
         for each tk in assetName
             self.tags[tk] = assetName[tk]
         end for
+    ' Fix for CE-6899 collect app version even when tags are invalid (or not set)
+    else if tags = Invalid
+        ' Auto collect app version'
+        appInfo = CreateObject("roAppInfo")
+        self.tags["c3.app.version"] = appInfo.GetVersion()
     end if
 
     '''''''''''''''''''''''''''''''''''''''''
@@ -256,6 +260,8 @@ function ConvivaLivePassInitWithSettings (apiKey as object, convivaSettings=inva
     self.utils = cwsConvivaUtils()
     self.sendLogs = false
     self.cfg = self.utils.convivaSettings
+    self.userPrefsForDataCollection = invalid
+    self.userPrefsForDataDeletion = invalid
     ' Copy the settings over
     if convivaSettings <> invalid then
         for each key in convivaSettings:
@@ -362,6 +368,27 @@ function ConvivaLivePassInitWithSettings (apiKey as object, convivaSettings=inva
         end if
         sess = cwsConvivaSession(self, screen, contentInfo, positionNotificationPeriod, video, self.SESSION_TYPE.CONTENT, options)
         self.session = sess
+
+        ' Use stored user data collection / deletion preferences to session'
+        prefs = self.userPrefsForDataCollection
+        if prefs <> invalid
+          if prefs.rida <> invalid
+            self.session.convivaIdCollection.rida = prefs.rida
+          end if
+          if prefs.ccid <> invalid
+            self.session.convivaIdCollection.ccid = prefs.ccid
+          end if
+        end if
+        delPrefs = self.userPrefsForDataDeletion
+        if delPrefs <> invalid
+          if delPrefs.rida <> invalid
+            self.session.convivaIdDeletion.rida = delPrefs.rida
+          end if
+          if delPrefs.ccid <> invalid
+            self.session.convivaIdDeletion.ccid = delPrefs.ccid
+          end if
+        end if
+
         self.attachStreamer()
         return sess
     end function
@@ -412,8 +439,61 @@ function ConvivaLivePassInitWithSettings (apiKey as object, convivaSettings=inva
         if contentInfo.playerName = invalid or contentInfo.playerName = ""
             contentInfo.playerName = contentSession.contentInfo.playerName
         end if
+
+        contentInfo.isLive = contentSession.contentInfo.isLive
+        if contentInfo.playerName = invalid or contentInfo.playerName = ""
+            contentInfo.playerName = contentSession.contentInfo.playerName
+        end if
+
         sess = cwsConvivaSession(self, screen, contentInfo, positionNotificationPeriod, video, self.SESSION_TYPE.AD, options)
+
+        if contentInfo.tags <> invalid
+          if contentInfo.tags["c3.ad.technology"] = "Server Side"
+            ' ST-373 Copy content session metrics for server side ads.'
+
+            info = contentSession.getCurrentStreamInfo()
+            if info <> Invalid
+              if info.bitrateKbps <> invalid and info.bitrateKbps > -1
+                sess.cwsSessOnBitrateChange(info.bitrateKbps, false)
+              end if
+              if info.resource <> invalid
+                sess.defaultReportingResource = info.resource
+              end if
+              if info.curState <> invalid
+                sess.cwsSessOnStateChange(info.curState)
+              end if
+              if info.cdnServerIP <> invalid
+                sess.cwsSessOnCDNServerIP(info.cdnServerIP, false)
+              end if
+              if info.streamFormat <> invalid
+                sess.streamFormat = info.streamFormat
+              end if
+            end if
+          end if
+        end if
+
         self.adsession = sess
+
+        prefs = self.userPrefsForDataCollection
+        if prefs <> invalid
+          if prefs.rida <> invalid
+            self.adsession.convivaIdCollection.rida = prefs.rida
+          end if
+          if prefs.ccid <> invalid
+            self.adsession.convivaIdCollection.ccid = prefs.ccid
+          end if
+        end if
+
+        delPrefs = self.userPrefsForDataDeletion
+        if delPrefs <> invalid
+          if delPrefs.rida <> invalid
+            self.adsession.convivaIdDeletion.rida = delPrefs.rida
+          end if
+          if delPrefs.ccid <> invalid
+            self.adsession.convivaIdDeletion.ccid = delPrefs.ccid
+          end if
+        end if
+
         self.attachAdStreamer()
         return sess
     end function
@@ -490,7 +570,7 @@ function ConvivaLivePassInitWithSettings (apiKey as object, convivaSettings=inva
         end if
         self.checkCurrentSession(session)
         self.utils.log("setPlayerState "+playerState)
-        session.cwsSessOnStateChange(playerState, invalid)
+        session.cwsSessOnStateChange(playerState)
     end function
 
     '''
@@ -733,7 +813,7 @@ function ConvivaLivePassInitWithSettings (apiKey as object, convivaSettings=inva
         self.session.screen = screen
 	end if
         if self.session.screen = invalid ' attach with null streamer
-            self.session.cwsSessOnStateChange(self.session.ps.notmonitored, invalid)
+            self.session.cwsSessOnStateChange(self.session.ps.notmonitored)
             self.session.screen = false
         else                ' attach with proper streamer
             ' Not guaranteed to work, see CSR-103. Extra integration step needed.
@@ -741,11 +821,11 @@ function ConvivaLivePassInitWithSettings (apiKey as object, convivaSettings=inva
             if self.session.video <> invalid then
                 self.session.video.notificationinterval = self.session.notificationPeriod
                 if self.session.video.GetField("state") = "playing"
-                    self.session.cwsSessOnStateChange(self.session.ps.playing, invalid)
+                    self.session.cwsSessOnStateChange(self.session.ps.playing)
                 else if self.session.video.GetField("state") = "paused"
-                    self.session.cwsSessOnStateChange(self.session.ps.paused, invalid)
+                    self.session.cwsSessOnStateChange(self.session.ps.paused)
                 else if self.session.video.GetField("state") = "buffering"
-                    self.session.cwsSessOnStateChange(self.session.ps.buffering, invalid)
+                    self.session.cwsSessOnStateChange(self.session.ps.buffering)
                 end if
             end if
 
@@ -773,7 +853,7 @@ function ConvivaLivePassInitWithSettings (apiKey as object, convivaSettings=inva
             self.adsession.screen = screen
         end if
         if self.adsession.screen = invalid ' attach with null streamer
-            self.adsession.cwsSessOnStateChange(self.adsession.ps.notmonitored, invalid)
+            self.adsession.cwsSessOnStateChange(self.adsession.ps.notmonitored)
             self.adsession.screen = false
         else                ' attach with proper streamer
             ' Not guaranteed to work, see CSR-103. Extra integration step needed.
@@ -781,11 +861,11 @@ function ConvivaLivePassInitWithSettings (apiKey as object, convivaSettings=inva
             if self.adsession.video <> invalid  then
                 self.adsession.video.notificationinterval = self.adsession.notificationPeriod
                 if self.adsession.video.GetField("state") = "playing"
-                    self.adsession.cwsSessOnStateChange(self.adsession.ps.playing, invalid)
+                    self.adsession.cwsSessOnStateChange(self.adsession.ps.playing)
                 else if self.adsession.video.GetField("state") = "paused"
-                    self.adsession.cwsSessOnStateChange(self.adsession.ps.paused, invalid)
+                    self.adsession.cwsSessOnStateChange(self.adsession.ps.paused)
                 else if self.adsession.video.GetField("state") = "buffering"
-                    self.adsession.cwsSessOnStateChange(self.adsession.ps.buffering, invalid)
+                    self.adsession.cwsSessOnStateChange(self.adsession.ps.buffering)
                 end if
             end if
             ' Restoring the prevBitrate reported during detach streamer as a fallback
@@ -807,7 +887,7 @@ function ConvivaLivePassInitWithSettings (apiKey as object, convivaSettings=inva
             return
         end if
         self.utils.log("detachStreamer")
-        self.session.cwsSessOnStateChange(self.session.ps.notmonitored, invalid)
+        self.session.cwsSessOnStateChange(self.session.ps.notmonitored)
         self.session.screen = false
     end function
 
@@ -927,6 +1007,63 @@ function ConvivaLivePassInitWithSettings (apiKey as object, convivaSettings=inva
         end if
     end function
 
+    ' Stores user preferences for data collection'
+    self.setUserPreferenceForDataCollection = function(prefs as object) as void
+      self = m
+      if self.utils = invalid then
+          print "ERROR: called setUserPreferenceForDataCollection on uninitialized LivePass"
+          return
+      end if
+      self.utils.log("self.setUserPreferenceForDataCollection")
+      self.userPrefsForDataCollection = prefs
+      if prefs <> invalid
+        if prefs.rida <> invalid
+          if self.session <> invalid
+            self.session.convivaIdCollection.rida = prefs.rida
+          end if
+          if self.adsession <> invalid
+            self.adsession.convivaIdCollection.rida = prefs.rida
+          end if
+        end if
+        if prefs.ccid <> invalid
+          if self.session <> invalid
+            self.session.convivaIdCollection.ccid = prefs.ccid
+          end if
+          if self.adsession <> invalid
+            self.adsession.convivaIdCollection.ccid = prefs.ccid
+          end if
+        end if
+      end if
+    end function
+
+    ' Stores user preferences for data Deletion from backend'
+    self.setUserPreferenceForDataDeletion = function(prefs as object) as void
+      self = m
+      if self.utils = invalid then
+          print "ERROR: called setUserPreferenceForDataCollection on uninitialized LivePass"
+          return
+      end if
+      self.utils.log("self.setUserPreferenceForDataCollection")
+      self.userPrefsForDataDeletion = prefs
+      if prefs <> invalid
+        if prefs.rida <> invalid
+          if self.session <> invalid
+            self.session.convivaIdDeletion.rida = prefs.rida
+          end if
+          if self.adsession <> invalid
+            self.adsession.convivaIdDeletion.rida = prefs.rida
+          end if
+        end if
+        if prefs.ccid <> invalid
+          if self.session <> invalid
+            self.session.convivaIdDeletion.ccid = prefs.ccid
+          end if
+          if self.adsession <> invalid
+            self.adsession.convivaIdDeletion.ccid = prefs.ccid
+          end if
+        end if
+      end if
+    end function
     ' Store ourselves in the globalAA for future use
     globalAA = getGLobalAA()
     globalAA.ConvivaLivePass = self
@@ -971,7 +1108,8 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
     end if
 
     self.cdnServerStreamUrl = invalid
-
+    self.convivaIdCollection = {}
+    self.convivaIdDeletion = {}
     self.bl = -1
     self.pht = -1
     self.fw = invalid
@@ -1037,7 +1175,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
 
     self.targetIpAddress = invalid
     self.cdnCallback = function (sess as object, success as boolean, resp as string)
-        print "recieved CDN HEAD response"
+        print "recieved CDN HEAD response"+resp
         if success = True
             if sess<> Invalid and sess.targetIpAddress <> invalid and sess.cfg.csi_en = true
                 sess.cwsSessOnCDNServerIP(sess.targetIpAddress, false)
@@ -1132,7 +1270,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
     vid = contentInfo.viewerId
     if (type(vid)="String" or type(vid)="roString") and vid <> "" then
         self.hb.vid = vid
-    else 
+    else
         self.utils.log("Missing viewerId during session creation")
     end if
 
@@ -1140,7 +1278,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
     pn = contentInfo.playerName
     if (type(pn)="String" or type(pn)="roString") and pn <> "" then
         self.hb.pn = pn
-    else 
+    else
         self.utils.log("Missing playerName during session creation")
     end if
 
@@ -1254,7 +1392,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
 
         if self.global = false
 
-            pm = self.psm.cwsPsmGetPlayerMeasurements(sessionTimeMs)
+            pm = self.psm.cwsPsmGetPlayerMeasurements()
             for each st in pm
                 if st = "tags"
                     if self.hb.tags = invalid
@@ -1267,6 +1405,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
                     self.hb[st] = pm[st]
                 end if
             end for
+
             ' DE-2710: pht is added only when >= 0
             if self.pht >= 0
                 self.hb.pht = self.pht * 1000 ' pht should be reported in ms
@@ -1295,6 +1434,29 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
         if resource <> invalid then
             self.psm.resource = resource
         end if
+    end function
+
+    self.getCurrentStreamInfo = function () as object
+        self = m
+        currentStreamInfo = {}
+        if self.psm.bitrateKbps <> -1 then
+            currentStreamInfo.bitrateKbps = self.psm.bitrateKbps
+        end if
+        if self.psm.resource <> invalid then
+            currentStreamInfo.resource = self.psm.resource
+        end if
+        if self.psm.curState <> invalid then
+            currentStreamInfo.curState = self.psm.curState
+        end if
+
+        if self.psm.cdnServerIP <> invalid then
+            currentStreamInfo.cdnServerIP = self.psm.cdnServerIP
+        end if
+
+        if self.streamFormat <> invalid then
+            currentStreamInfo.streamFormat = self.streamFormat
+        end if
+        return currentStreamInfo
     end function
 
     self.buildInitialStateChangeEvent = function (metadata as object)
@@ -1500,7 +1662,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
         end if
     end function
 
-    self.cwsHbFailure = function (sess as dynamic, selectionTimedout as boolean, reason as string) as void
+    self.cwsHbFailure = function (sess as dynamic, reason as string) as void
         if sess = invalid or sess.cws = invalid then
             return
         end if
@@ -1523,10 +1685,10 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
             return invalid
         end if
         if sess = invalid or sess.cws = invalid then
-            sess.cwsHbFailure(sess, false, "session is invalid")
+            sess.cwsHbFailure(sess, "session is invalid")
             return invalid
         else if sess.cws.clId = invalid then
-            sess.cwsHbFailure(sess, false, "no clientid")
+            sess.cwsHbFailure(sess, "no clientid")
             sess.log("Suppress HB sending: no clientId")
             return invalid
         else if sess.cws.clId = "0" then
@@ -1572,17 +1734,18 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
 
         callback = function (sess as object, success as boolean, resp as string)
             if success <> true then
-                sess.cwsHbFailure(sess, false,  "Hb response failed")
+                sess.cwsHbFailure(sess, "Hb response failed")
             end if
             sess.cwsOnResponse(resp)
         end function
 
-        hbTimeoutCallback = function (sess as dynamic)
-            if sess.isReady <> true then
-                sess.log( "hbTimeoutCallback timeout callback")
-                sess.cwsHbFailure(sess, true, "hb timed out")
-            end if
-        end function
+        ' Function not in use Hence removed
+        ' hbTimeoutCallback = function (sess as dynamic)
+        '     if sess.isReady <> true then
+        '         sess.log( "hbTimeoutCallback timeout callback")
+        '         sess.cwsHbFailure(sess, "hb timed out")
+        '     end if
+        ' end function
 
         sess.lastRequestSent = CreateObject("roDateTime")
         genHb = sess.cwsSessGetHb()
@@ -1593,7 +1756,6 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
 
     self.cwsOnResponse = function (resp_txt as string) as void
         self = m
-        selectionAvailable = false
         receivedTime = CreateObject("roDateTime")
         self.log("response "+ resp_txt)
 
@@ -1611,14 +1773,14 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
 '        if resp = invalid or resp.err <> "ok" then
         if type(resp) = "<uninitialized>" or resp = invalid then
             msg = "empty response"
-            self.cwsHbFailure(self, false, msg)
+            self.cwsHbFailure(self, msg)
             self.log("ERROR response from gateway: "+resp_txt)
             return
         end if
 
         if resp.err <> invalid and resp.err <> "ok" then
             msg = resp.err
-            self.cwsHbFailure(self, false, msg)
+            self.cwsHbFailure(self, msg)
             self.log("ERROR response from gateway: "+resp_txt)
         end if
 
@@ -1685,11 +1847,20 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
             'self.log("Received csi_en from backend "+ resp.cfg.csi_en)
         end if
 
+        if self.cfg.fp = Invalid
+          self.cfg.fp = ""
+        end if
+        if resp.cfg <> invalid and resp.cfg.DoesExist("fp") then
+          if resp.cfg.fp <> invalid
+            self.cwsSessOnFpTags(resp.cfg.fp, self.cfg.fp)
+            self.cfg.fp = resp.cfg.fp
+          end if
+        end if
+
         'todo compute the rtt for the right heart beat sequence message
         self.lastResponseTimeMs = (receivedTime.asSeconds() - self.lastRequestSent.asSeconds()) * 1000 + (receivedTime.GetMilliseconds() - self.lastRequestSent.GetMilliseconds ())
 
         ' remove heartbeats which have a sequence number less than the current sequence number
-        match = invalid
         index = -1
         for each hbinfo in self.hbinfos
             index = index + 1
@@ -1711,7 +1882,6 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
     self.cwsSessGetHb = function () as string
         self = m
         'Return HB data for a session as a json string
-        encStart = self.sessionTimer.TotalMilliseconds()
         ' DE-2710: Add evs to hb only when count > 0
         if self.evs.count() > 0
             self.hb.evs = self.evs
@@ -1769,7 +1939,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
 
     end function
 
-    self.cwsSessOnStateChange = function (playerState as string, data as dynamic) as void
+    self.cwsSessOnStateChange = function (playerState as string) as void
         self = m
 
         if self = invalid then
@@ -1777,7 +1947,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
             return
         end if
 
-        evt = self.psm.cwsPsmOnStateChange(self.cwsSessTimeSinceSessionStart(), playerState)
+        evt = self.psm.cwsPsmOnStateChange(playerState)
         if evt <> invalid then
             self.cwsSessSendEvent(evt.t, evt)
         end if
@@ -1815,7 +1985,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
             self.log("Invalid bitrate change requested")
             return
         end if
-        evt = self.psm.cwsPsmOnBitrateChange(self.cwsSessTimeSinceSessionStart(), newBitrateKbps)
+        evt = self.psm.cwsPsmOnBitrateChange(newBitrateKbps)
         if evt <> invalid then
             if externalReported
                 self.log("Bitrate change requested from the application")
@@ -1838,7 +2008,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
             return
         end if
 
-        evt = self.psm.cwsPsmOnAvgBitrateChange(self.cwsSessTimeSinceSessionStart(), newAvgBitrateKbps)
+        evt = self.psm.cwsPsmOnAvgBitrateChange(newAvgBitrateKbps)
         if evt <> invalid then
             self.cwsSessSendEvent(evt.t, evt)
         end if
@@ -1875,6 +2045,35 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
         end if
     end function
 
+    self.cwsSessOnDropFrameTotalChange = function (noOfFrames as integer) as void
+        self = m
+        if self = invalid then
+            self.log("Cannot set drop frames total for invalid session")
+            return
+        end if
+        if noOfFrames = self.psm.droppedFramesTotal then
+            return
+        end if
+        self.log("Detected cwsSessOnDropFrameTotalChange - Total dropped frames since start of playback"+ Stri(noOfFrames))
+        evt = self.psm.cwsPsmOnDroppedFramesTotalChange(noOfFrames)
+        if evt <> invalid then
+            self.cwsSessSendEvent(evt.t, evt)
+        end if
+    end function
+
+    self.cwsSessOnRenderFrameTotalChange = function (noOfFrames as integer) as void
+        self = m
+        if self = invalid then
+            self.log("Cannot set rendered frames total for invalid session")
+            return
+        end if
+        if noOfFrames = self.psm.renderedFramesTotal or noOfFrames < self.psm.renderedFramesTotal then
+            return
+        end if
+        self.log("Detected cwsSessOnRenderFrameTotalChange - Total Rendered frames since start of playback"+ Stri(noOfFrames))
+        self.psm.renderedFramesTotal = noOfFrames
+    end function
+
     self.cwsSessOnResourceChange = function (newStreamUrl as dynamic) as void
         self = m
         self.log("cwsSessOnResourceChange "+ newStreamUrl)
@@ -1887,7 +2086,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
             return
         end if
         'self.psm.streamUrl = newStreamUrl
-        evt = self.psm.cwsPsmOnStreamUrlChange(self.cwsSessTimeSinceSessionStart(), newStreamUrl, self.contentInfo)
+        evt = self.psm.cwsPsmOnStreamUrlChange(newStreamUrl, self.contentInfo)
         if evt <> invalid then
             self.cwsSessSendEvent(evt.t, evt)
         end if
@@ -1945,8 +2144,110 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
         end if
     end function
 
+    self.cwsSessOnFpTags = function (newFpTags as string, prevFpTags as string) as void
+        self = m
+        if self = invalid then
+            self.log("Cannot fetch deviceIds for invalid session")
+            return
+        end if
+        changedMetadata = {}
+        changedMetadata.tags = {}
+        ' Compare current IDs with previously configured device Ids'
+        currentFp = newFpTags.split(",")
+        prevFp = prevFpTags.split(",")
+        prevFp.sort()
+        currentFp.sort()
+
+        for each configuredId in currentFp
+          if configuredId <> "rida" and configuredId <> "ccid"
+            self.log("Collection of "+configuredId+ " is not applicable / possible")
+          end if
+        end for
+
+        if self.convivaIdDeletion.rida <> invalid
+          if self.convivaIdDeletion.rida = true
+            changedMetadata.tags["c3.fp.rida"] = "5"
+            self.updateContentMetadata(changedMetadata)
+            return
+          end if
+        end if
+
+        ' Delete from HB if collection is blocked from portal. Stop sending from next HB onwards'
+        if newFpTags = prevFpTags
+          if self.hb.tags["c3.fp.rida"] = "4"
+            self.hb.tags.delete("c3.fp.rida")
+            self.psm.tags.delete("c3.fp.rida")
+          end if
+          if self.hb.tags["c3.fp.ccid"] = "4"
+            self.hb.tags.delete("c3.fp.ccid")
+            self.psm.tags.delete("c3.fp.ccid")
+          end if
+          return
+        end if
+
+        ' Send info that an ID is blocked from portal config.'
+        if prevFp.Count() > currentFp.Count()
+          i=0
+          for each prevId in prevFp
+            if (currentFp[i] = invalid or prevId <> currentFp[i]) and (prevId = "rida" or prevId = "ccid")
+              changedMetadata.tags["c3.fp."+prevId] = "4"
+              i = i + 1
+            end if
+          end for
+        else
+          for each id in currentFp
+            if id = "rida"
+              if self.devinfo.IsRIDADisabled()
+                ' Collection is blocked from device settings'
+                changedMetadata.tags["c3.fp.rida"] = "3"
+              else if self.convivaIdCollection.rida <> invalid
+                if self.convivaIdCollection.rida = true
+                  ' Can be collcted
+                  changedMetadata.tags["c3.fp.rida"] = self.devinfo.GetRIDA()
+                else
+                  ' User blocked collection'
+                  changedMetadata.tags["c3.fp.rida"] = "2"
+                end if
+              else
+                ' Can be collcted
+                changedMetadata.tags["c3.fp.rida"] = self.devinfo.GetRIDA()
+              end if
+            else if id = "ccid"
+              if self.convivaIdCollection.ccid <> invalid
+                if self.convivaIdCollection.ccid = true
+                  changedMetadata.tags["c3.fp.ccid"] = self.devinfo.GetChannelClientId()
+                else
+                  changedMetadata.tags["c3.fp.ccid"] = "2"
+                end if
+              else
+                changedMetadata.tags["c3.fp.ccid"] = self.devinfo.GetChannelClientId()
+              end if
+            else if id <> ""
+              ' Such an ID does not exist'
+              ' changedMetadata.tags["c3.fp."+id] = "0"
+            end if
+          end for
+        end if
+        self.updateContentMetadata(changedMetadata)
+        ' if evt <> invalid then
+        '     self.cwsSessSendEvent(evt.t, evt)
+        ' end if
+
+
+        ' if newFpTags <> invalid and newFpTags <> ""
+        '   if prevFpTags <> "" or prevFpTags <> invalid
+        '     print self.devinfo
+        '   end if
+        ' end if
+        ' print self.hb.tags
+        ' evt = self.psm.cwsPsmOnCDNServerIPChange(cdnServerIP)
+        ' if evt <> invalid then
+        '     self.cwsSessSendEvent(evt.t, evt)
+        ' end if
+    end function
+
     ' PD-8962: Smooth Streaming support
-    self.updateBitrateFromEventInfo = function (streamUrl as string, streamBitrate as integer, sequence as integer, segTypeReceived as dynamic) as void
+    self.updateBitrateFromEventInfo = function (streamUrl as string, streamBitrate as integer, sequence as integer) as void
         self = m
         segType = -1
         if self.streamFormat = "ism" or self.streamFormat = "dash" or self.streamFormat = "hls" then
@@ -2007,7 +2308,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
         self = m
         if type(convivaSceneGraphVideoEvent) = "roSGScreenEvent"
             if convivaSceneGraphVideoEvent.isScreenClosed() then               'real end of session
-                self.cwsSessOnStateChange(self.ps.stopped, invalid)
+                self.cwsSessOnStateChange(self.ps.stopped)
             end if
         else if type(convivaSceneGraphVideoEvent) = "roSGNodeEvent"
             self.cwsSessOnConnectionTypeChange(self.devinfo.GetConnectionType())
@@ -2049,7 +2350,7 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
                         'Ignore the "position" event which greater then PHT + 10%.
                         ' DE-5161: converting position of type Double to integer
                         if (Abs((int(info) * 1000) - (self.pht * 1000)) < self.positionHeadCheck)
-                            self.cwsSessOnStateChange(self.ps.playing, invalid)
+                            self.cwsSessOnStateChange(self.ps.playing)
                         end if
                         self.pht = int(info)
                         ' TODO: Need to move reporting change events part of timer to cover all the scenarios in future
@@ -2066,15 +2367,15 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
                         if (self.video.duration <> invalid and self.video.duration > 0)
                             self.cwsSessOnDurationChange(self.video.duration)
                         end if
-                        self.cwsSessOnStateChange(self.ps.playing, invalid)
+                        self.cwsSessOnStateChange(self.ps.playing)
                     else if state = "paused" Then
-                        self.cwsSessOnStateChange(self.ps.paused, invalid)
+                        self.cwsSessOnStateChange(self.ps.paused)
                     else if state = "finished" or state = "stopped" Then
-                        self.cwsSessOnStateChange(self.ps.stopped, invalid)
+                        self.cwsSessOnStateChange(self.ps.stopped)
                     else if state = "buffering" Then
-                        self.cwsSessOnStateChange(self.ps.buffering, invalid)
+                        self.cwsSessOnStateChange(self.ps.buffering)
                     else if state = "error" Then
-                        self.cwsSessOnStateChange(self.ps.stopped, invalid)
+                        self.cwsSessOnStateChange(self.ps.stopped)
 		    if self.externalErrorReporting = invalid or self.externalErrorReporting = false
                         errorCode = self.video.errorCode
                         errorMsg = self.video.errorMsg
@@ -2127,17 +2428,8 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
                     ' DE-5167: Converting segSequence of integer type to integer returns different value
                     if self.externalBitrateReporting = false
                         self.log("videoEvent: streamingSegment segBitrateBps="+formatJSON(info))
-                        if info.segType <> invalid
-                            ' if self.utils.streamingSegmentSetTypeSupported = invalid
-                            '     self.utils.streamingSegmentSetTypeSupported = true
-                            '     if self.utils.downloadSegments <> invalid
-                            '         self.utils.downloadSegments.clear()
-                            '     end if
-                            ' end if
-                            self.updateBitrateFromEventInfo(info.segUrl, int(info.segBitrateBps/1000), info.segSequence, info.segType)
-                        else
-                            self.updateBitrateFromEventInfo(info.segUrl, int(info.segBitrateBps/1000), info.segSequence, invalid)
-                        end if
+
+                        self.updateBitrateFromEventInfo(info.segUrl, int(info.segBitrateBps/1000), info.segSequence)
                         if self.screen = true
                             self.cwsSessOnBitrateChange(self.totalBitrate, false)
                         else
@@ -2166,6 +2458,15 @@ function cwsConvivaSession(cws as object, screen as object, contentInfo as objec
                     end if
                 end if
                 self.cdnServerStreamUrl = info.SegUrl
+            ' else if self.video <> invalid and convivaSceneGraphVideoEvent.getField() = "decoderStats" Then
+            '     if info <> Invalid
+            '       if info.frameDropCount <> invalid and info.frameDropCount > 0
+            '         self.cwsSessOnDropFrameTotalChange(info.frameDropCount)
+            '       end if
+            '       if info.renderCount <> invalid and info.renderCount > 0
+            '         self.cwsSessOnRenderFrameTotalChange(info.renderCount)
+            '       end if
+            '     end if
 
             end if
         end if
@@ -2189,7 +2490,6 @@ function cwsConvivaPlayerState(sess as object) as object
     self.utils = sess.utils
     self.devinfo = sess.devinfo
 
-    ps = sess.ps
     self.ignoreBufferingStatus = false
     self.totalBufferingEvents = 0
     self.joinTimeMs = -1
@@ -2197,6 +2497,8 @@ function cwsConvivaPlayerState(sess as object) as object
     self.encodedFramerate = -1
     self.videoWidth = -1
     self.videoHeight = -1
+    self.droppedFramesTotal = -1
+    self.renderedFramesTotal = -1
 
     self.totalPlayingKbits = 0
     self.curState = self.session.ps.stopped
@@ -2222,9 +2524,8 @@ function cwsConvivaPlayerState(sess as object) as object
         self.utils = invalid
     end function
 
-    self.cwsPsmOnStateChange = function (sessionTimeMs as integer, newState as string) as object
+    self.cwsPsmOnStateChange = function (newState as string) as object
         self = m
-        ps = self.session.ps
         if newState=invalid or (self.curState=newState) then
             return invalid
         end if
@@ -2247,7 +2548,7 @@ function cwsConvivaPlayerState(sess as object) as object
         return pst
     end function
 
-    self.cwsPsmOnBitrateChange = function (sessionTimeMs as integer, newBitrateKbps as integer) as object
+    self.cwsPsmOnBitrateChange = function (newBitrateKbps as integer) as object
         self = m
         if self.bitrateKbps = newBitrateKbps then
             return invalid
@@ -2267,7 +2568,7 @@ function cwsConvivaPlayerState(sess as object) as object
         return brc
     end function
 
-    self.cwsPsmOnAvgBitrateChange = function (sessionTimeMs as integer, newAvgBitrateKbps as integer) as object
+    self.cwsPsmOnAvgBitrateChange = function (newAvgBitrateKbps as integer) as object
         self = m
         if self.avgBitrateKbps = newAvgBitrateKbps then
             return invalid
@@ -2329,6 +2630,23 @@ function cwsConvivaPlayerState(sess as object) as object
         return evt
     end function
 
+    self.cwsPsmOnDroppedFramesTotalChange = function (noOfFrames as integer) as object
+        self = m
+        evt = {
+            t: "CwsStateChangeEvent",
+            new: {
+                dftot: noOfFrames
+            }
+        }
+        if (self.droppedFramesTotal <> invalid and self.droppedFramesTotal <> -1)
+            evt.old = {
+                dftot: self.droppedFramesTotal
+            }
+        end if
+        self.droppedFramesTotal = noOfFrames
+        return evt
+    end function
+
     self.cwsPsmOnConnectionTypeChange = function (connType as string) as object
         self = m
         if self.connType = connType then
@@ -2352,7 +2670,7 @@ function cwsConvivaPlayerState(sess as object) as object
         return evt
     end function
 
-    self.cwsPsmOnStreamUrlChange = function (sessionTimeMs as integer, newUrl as dynamic, contentInfo as dynamic) as object
+    self.cwsPsmOnStreamUrlChange = function (newUrl as dynamic, contentInfo as dynamic) as object
         self = m
         if self.streamUrl = newUrl
             return invalid
@@ -2403,8 +2721,32 @@ function cwsConvivaPlayerState(sess as object) as object
         end if
     end function
 
+    self.cwsPsmOnTagsChange = function (newTags as object) as object
+        self = m
+        if FormatJson(self.tags) = FormatJson(newTags) then
+            return invalid
+        end if
+        if (type(newTags) = "roAssociativeArray" and newTags <> invalid) then
+            tagc = {
+                t: "CwsStateChangeEvent",
+                new: {
+                    tags: newTags
+                }
+            }
+            if FormatJson(self.tags) <> FormatJson({}) and self.tags <> invalid then
+                tagc.old = {
+                    tags: self.tags
+                }
+            end if
+            self.tags = newTags
+            return tagc
 
-    self.cwsPsmGetPlayerMeasurements = function (sessionTimeMs as integer) as object
+        else
+            return invalid
+        end if
+    end function
+
+    self.cwsPsmGetPlayerMeasurements = function () as object
         self = m
         data = {
             ps: strtoi(self.curState)
@@ -2467,6 +2809,15 @@ function cwsConvivaPlayerState(sess as object) as object
         if self.connType <> invalid
             data.ct = self.connType
         end if
+
+        ' if self.droppedFramesTotal <> invalid and self.droppedFramesTotal <> -1
+        '     data.dftot = self.droppedFramesTotal
+        ' end if
+        '
+        ' if self.renderedFramesTotal <> invalid and self.renderedFramesTotal <> -1
+        '     data.rfpstot = self.renderedFramesTotal
+        ' end if
+
         ' Send CDN Server IP info only if it is enabled in config
         if self.cdnServerIP <> invalid and self.cdnServerIP <> "null"
             data.csi = self.cdnServerIP
@@ -2482,7 +2833,6 @@ end function
 
 ' Copyright: Conviva Inc. 2011-2012
 ' Conviva LivePass Brightscript Client library for Roku devices
-' LivePass Version: 3.3.0
 ' authors: Alex Roitman <shura@conviva.com>
 '          George Necula <necula@conviva.com>
 '
@@ -2696,11 +3046,7 @@ function cwsConvivaUtils()  as object
                    uto: uto
                }
                self.log("Posted request #"+stri(reqId)+" to "+url)
-               l = 0
-               for each item in self.pendingRequests
-                   l = l + 1
-               end for
-               self.log("Pending requests size is"+stri(l))
+               self.log("Pending requests size is"+stri(self.pendingRequests.Count()))
            else
                self.err("POST Request failed")
                self.availableUtos.push(uto)
@@ -2733,11 +3079,7 @@ function cwsConvivaUtils()  as object
                    uto: uto
                }
                self.log("Posted HEAD request #"+stri(reqId)+" to "+url)
-               l = 0
-               for each item in self.pendingRequests
-                   l = l + 1
-               end for
-               self.log("Pending requests size is"+stri(l))
+               self.log("Pending requests size is"+stri(self.pendingRequests.Count()))
            else
                self.err("HEAD Request failed")
                self.availableUtos.push(uto)
@@ -2761,7 +3103,6 @@ function cwsConvivaUtils()  as object
 
            self.pendingRequests.delete(stri(sourceId))
            self.availableUtos.push(reqData.uto)
-           respData = ""
            respCode = convivaUrlEvent.GetResponseCode()
            If respCode = 200 Then
                reqData.callback(reqData.callbackObj, True, convivaUrlEvent.GetString())
@@ -3106,7 +3447,6 @@ function cwsConvivaUtils()  as object
 
     ' DE-2669: CWS Gateway URL implementation
     self.createConvivaCwsGatewayUrl = function (apiKey as string, gatewayurl as Object) as string
-        self = m
         url = invalid
         if gatewayurl <> invalid
             hostNameRegex = CreateObject("roRegex", "://", "i")
@@ -3411,7 +3751,7 @@ End Function
 function cwsConvivaSettings() as object
     cfg = {}
     ' The next line is changed by set_versions
-    cfg.version = "3.3.0"
+    cfg.version = "3.4.5"
 
     cfg.enableLogging = false                      ' change to false to disable debugging output
     cfg.defaultHeartbeatInvervalMs = 20000         ' 20 sec HB interval
@@ -3425,7 +3765,7 @@ function cwsConvivaSettings() as object
 
     cfg.gatewayUrl        = cfg.defaultGatewayUrl
     cfg.gatewayPath     = "/0/wsg" 'Gateway URL
-    cfg.protocolVersion = "2.5"
+    cfg.protocolVersion = "2.6"
 
     cfg.printHb = false
 
@@ -3435,7 +3775,7 @@ function cwsConvivaSettings() as object
 
     return cfg
 end function
-' ConvivaAIMonitor Version: 3.3.0
+' ConvivaAIMonitor
 ' authors: Kedar Marsada <kmarsada@conviva.com>, Mayank Rastogi <mrastogi@conviva.com>
 '
 ' Common script that is used by Conviva tasks to perform ad insights integrations.
@@ -3464,7 +3804,6 @@ sub handleAdEvent(adData)
             if m.adSession = invalid
                 adTags = { }
                 adTags.SetModeCaseSensitive()
-                assetName = "No ad title"
                 if adData.assetName <> invalid and Len(adData.assetName.trim()) <> 0
                     assetName = adData.assetName
                 end if
@@ -3551,7 +3890,6 @@ sub handleAdEvent(adData)
             'Create ad session by extracting metadata from ConvivaAdStart event data'
             adTags = { }
             adTags.SetModeCaseSensitive()
-            assetName = "No ad title"
             if adData.assetName <> invalid and Len(adData.assetName.trim()) <> 0
                 assetName = adData.assetName
             end if
@@ -3651,9 +3989,9 @@ sub handleAdEvent(adData)
                 m.ConvivaLpObj.cleanupSession(m.adSession)
                 m.adSession = invalid
             end if
-        else if adData.type = "ConvivaAdError" and adData.errCode <> invalid then
+        else if adData.type = "ConvivaAdError" then
             if m.adSession <> invalid
-                m.ConvivaLpObj.reportError(m.adSession, "Error code:"+adData.errcode+" Error Message: "+adData.errmsg, true)
+                m.ConvivaLpObj.reportError(m.adSession, "Error Message: "+adData.errorMessage, true)
                 m.ConvivaLpObj.cleanupSession(m.adSession)
                 m.adSession = invalid
             end if
@@ -3679,7 +4017,9 @@ sub sendPodStart(podInfo as object)
   m.podStartSent = true
   m.podData = {}
   m.podData.SetModeCaseSensitive()
-  m.podData["podPosition"] = podInfo.podPosition
+  if podInfo.podPosition <> invalid
+    m.podData["podPosition"] = podInfo.podPosition
+  end if
   if(m.podIndex = invalid)
     m.podIndex = 1
   end if
@@ -3702,8 +4042,9 @@ sub sendPodEnd(podInfo as object)
     if podInfo.podPosition <> invalid
       m.podData["podPosition"] = podInfo.podPosition
     end if
-    m.podData["podIndex"] = stri(m.podIndex).trim()
     m.podData["adType"] = podInfo.adType.trim()
+
+    m.podData["podIndex"] = stri(m.podIndex).trim()
     m.ConvivaLpObj.sendSessionEvent(m.ConvivaLpObj.session, "Conviva.PodEnd", m.podData)
     m.podIndex = m.podIndex + 1
   end if
