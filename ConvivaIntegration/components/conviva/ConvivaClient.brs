@@ -1,4 +1,4 @@
-' ConvivaClient Version: 3.0.9
+' ConvivaClient Version: 3.0.13
 ' authors: Kedar Marsada <kmarsada@conviva.com>, Mayank Rastogi <mrastogi@conviva.com>
 '
 
@@ -10,7 +10,6 @@
 ''' ConvivaClient is a singleton that returns ConvivaClientInstance
 '''
 function ConvivaClient(settings as object)
-    print "Conviva client gets called"
     globalAA = getGlobalAA()
 
     if globalAA.ConvivaClient = invalid
@@ -25,7 +24,6 @@ end function
 ''' @Params: settings containing gatewayUrl, customerKey
 '''
 function ConvivaClientInstance(settings as object)
-  print "Conviva Client Instance gets called"
 	self = {}
 	self.settings = settings
 
@@ -60,12 +58,10 @@ function ConvivaClientInstance(settings as object)
 		if videoNode <> Invalid
       for each monitor in self.monitors
       	if monitor.videoNode <> invalid and monitor.videoNode.isSameNode(videoNode)
-            print "Video node exists"
       		return true
       	end if
       end for
     end if
-    print "Video node does not exists"
   	return false
 	end function
 
@@ -89,33 +85,34 @@ function ConvivaClientInstance(settings as object)
   '
 	self.monitorVideoNode = function(videoNode as object, contentInfo as object)
 		self = m
-    'Check if videoNode is already being monitored
-    if self.isVideoExists(videoNode)
-      return invalid
-    end if
+        'Check if videoNode is already being monitored
+        if self.isVideoExists(videoNode)
+          return invalid
+        end if
 
-    'Create Conviva Task
-    convivaTask = createObject("roSGNode", "ConvivaPlayerMonitor")
-    if videoNode.isSubtype("Video")
-      convivaTask.callFunc("monitorNode", videoNode, contentInfo)
-    else
-      convivaTask.callFunc("monitorNode", invalid, contentInfo)
-    end if
+        'Create Conviva Task
+        convivaTask = createObject("roSGNode", "ConvivaPlayerMonitor")
+        if videoNode.isSubtype("Video")
+          convivaTask.callFunc("monitorNode", videoNode, contentInfo)
+        else
+          convivaTask.callFunc("monitorNode", invalid, contentInfo)
+        end if
 
-    convivaTask.gatewayUrl = self.settings.gatewayUrl
-    convivaTask.customerKey = self.settings.customerKey
-    convivaTask.control = "RUN"
-    if videoNode <> Invalid and videoNode.isSubtype("Video")
-      videoNode.appendChild(convivaTask)
-    end if
-    'Append task to videoNode as child.
-    monitor = CreateObject("roAssociativeArray")
-    monitor.videoNode = videoNode
-    monitor.convivaTask = convivaTask
+        convivaTask.gatewayUrl = self.settings.gatewayUrl
+        convivaTask.customerKey = self.settings.customerKey
 
-    'store videoNode
-    self.monitors.push(monitor)
-    self.log(videoNode, "ConvivaClient monitorVideoNode")
+        convivaTask.control = "RUN"
+        if videoNode <> Invalid and videoNode.isSubtype("Video")
+          videoNode.appendChild(convivaTask)
+        end if
+        'Append task to videoNode as child.
+        monitor = CreateObject("roAssociativeArray")
+        monitor.videoNode = videoNode
+        monitor.convivaTask = convivaTask
+
+        'store videoNode
+        self.monitors.push(monitor)
+        self.log(videoNode, "ConvivaClient monitorVideoNode")
 	end function
 
   ' To associate a videoNode to an existing monitoring session
@@ -146,7 +143,6 @@ function ConvivaClientInstance(settings as object)
     'store videoNode
     self.monitors.clear()
     self.monitors.push(monitor)
-    ?"###AssociateVideoNodeeeeee"
     self.log(videoNode, "ConvivaClient associateVideoNode")
   end function
   '
@@ -844,7 +840,7 @@ function ConvivaClientInstance(settings as object)
 
     adMetadata = {}
     adMetadata.SetModeCaseSensitive()
-    if breakInfo.GetStart() = 0 and self.convivaYoSpaceSession.GetSession()._CLASSNAME <> "YSLiveSession"
+    if breakInfo.GetStart() = 0 and self.convivaYoSpaceSession.GetSession()<> invalid and self.convivaYoSpaceSession.GetSession()._CLASSNAME <> "YSLiveSession"
         adMetadata["podPosition"] = "Pre-roll"
     else
         adMetadata["podPosition"] = "Mid-roll"
@@ -865,43 +861,44 @@ function ConvivaClientInstance(settings as object)
   self.OnYoSpaceAdStart = function (adData = invalid as Dynamic)
     globalAA = getGlobalAA()
     self = globalAA.ConvivaClient
-
-    advert = self.convivaYoSpaceSession.GetSession().GetCurrentAdvert()
     adInfo = {}
     adInfo.SetModeCaseSensitive()
-    if (advert <> invalid)
-        if (advert.GetAdvert() <> invalid)
-            adInfo.adid = advert.GetAdvert().GetId()
-            adInfo.adsystem = advert.GetAdvert().GetAdSystem()
-            adInfo.assetName = advert.GetAdvert().GetAdTitle()
-            adInfo.advertiser = advert.GetAdvert().GetAdvertiser()
-            ' CSR-4960 fix for sequence
-            if advert.GetAdvert().GetSequence() <> invalid
-            adInfo.sequence = ""+advert.GetAdvert().GetSequence()
-            end if
-        end if
-        if advert.isFiller() = true
-            adInfo.isSlate = "true"
-        else
-            adInfo.isSlate = "false"
-        end if
+    if self.convivaYoSpaceSession.GetSession() <> invalid
+      advert = self.convivaYoSpaceSession.GetSession().GetCurrentAdvert()
+      if (advert <> invalid)
+          if (advert.GetAdvert() <> invalid)
+              adInfo.adid = advert.GetAdvert().GetId()
+              adInfo.adsystem = advert.GetAdvert().GetAdSystem()
+              adInfo.assetName = advert.GetAdvert().GetAdTitle()
+              adInfo.advertiser = advert.GetAdvert().GetAdvertiser()
+              ' CSR-4960 fix for sequence
+              if advert.GetAdvert().GetSequence() <> invalid
+              adInfo.sequence = ""+advert.GetAdvert().GetSequence()
+              end if
+          end if
+          if advert.isFiller() = true
+              adInfo.isSlate = "true"
+          else
+              adInfo.isSlate = "false"
+          end if
 
-        if (advert.GetBreak().GetStart() = 0 and self.convivaYoSpaceSession.GetSession()._CLASSNAME <> "YSLiveSession")
-            adInfo.position = "Pre-roll"
-        else
-            adInfo.position = "Mid-roll"
-        end if
-        adInfo.creativeId = advert.GetCreativeId()
+          if (advert.GetBreak()<> invalid and advert.GetBreak().GetStart() = 0 and self.convivaYoSpaceSession.GetSession()._CLASSNAME <> "YSLiveSession")
+              adInfo.position = "Pre-roll"
+          else
+              adInfo.position = "Mid-roll"
+          end if
+          adInfo.creativeId = advert.GetCreativeId()
+          adInfo.contentLength = Int(advert.GetDuration())
+      end if
+      if self.convivaYoSpaceSession.GetSession()._CLASSNAME <> "YSLiveSession"
+          adInfo.isLive = false
+      else
+          adInfo.isLive = true
+      end if
     end if
     adInfo.streamUrl = self.convivaYoSpaceSession.GetMasterPlaylist()
     adInfo.mediaFileApiFramework = "NA"
     adInfo.technology = "Server Side"
-    adInfo.contentLength = Int(advert.GetDuration())
-    if self.convivaYoSpaceSession.GetSession()._CLASSNAME <> "YSLiveSession"
-        adInfo.isLive = false
-    else
-        adInfo.isLive = true
-    end if
     adInfo.streamFormat = self.convivaYoSpaceSession.GetSession().GetStreamType()
     adInfo.adManagerName = "YoSpace SDK"
     adInfo.adManagerVersion = self.convivaYoSpaceSession.GetVersion()
@@ -938,6 +935,7 @@ function ConvivaClientInstance(settings as object)
       convivaTask.callFunc("dispatchEvent", event)
     end if
   end function
+
 
   return self
 end function
