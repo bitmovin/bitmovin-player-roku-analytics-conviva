@@ -5,3 +5,4 @@ demo/components/conviva
 demo/components/*.brs
 demo/components/*.xml
 demo/source/conviva
+.DS_Store

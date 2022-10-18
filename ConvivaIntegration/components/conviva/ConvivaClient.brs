@@ -1,5 +1,5 @@
-' ConvivaClient Version: 3.3.0
-' authors: Kedar Marsada <kmarsada@conviva.com>, Mayank Rastogi <mrastogi@conviva.com>
+' ConvivaClient
+' authors: Kedar Marsada <kmarsada@conviva.com>, Mayank Rastogi <mrastogi@conviva.com>,  Happy Singh <hasingh@conviva.com>
 '
 
 '==== Public interface to the ConvivaLivePass library ====
@@ -361,8 +361,14 @@ function ConvivaClientInstance(settings as object)
     	convivaTask = self.getConvivaTask(videoNode)
   		if convivaTask <> invalid
   			adEvent = {}
-  			adEvent.type = "ConvivaAdError"
-  			adEvent.errorMessage = errorMessage
+        if severity
+          adEvent.severity = self.ERROR_SEVERITY.FATAL
+        else
+          adEvent.severity = self.ERROR_SEVERITY.WARNING
+        end if
+
+        adEvent.type = "ConvivaAdError"
+        adEvent.errorMessage = errorMessage
   			convivaTask.callFunc("dispatchEvent", adEvent)
   		end if
     end if
@@ -375,8 +381,10 @@ function ConvivaClientInstance(settings as object)
 		if self.isVideoExists(videoNode)
     	convivaTask = self.getConvivaTask(videoNode)
   		if convivaTask <> invalid
-  			adEvent = adInfo
+  			adEvent = {}
   			adEvent.type = "ConvivaAdEvent"
+        adEvent.eventType = eventType
+        adEvent.eventDetail = eventDetail
   			convivaTask.callFunc("dispatchEvent", adEvent)
   		end if
     end if
@@ -419,6 +427,7 @@ function ConvivaClientInstance(settings as object)
   ' TBD - incomplete implementation - Will never be used. Created the API to keep it consistent across all platforms
 	self.reportPlayerState = function( videoNode as object, playerState as string )
         self=m
+        self.log(videoNode, "ConvivaClient reportPlayerState",playerState )'HAPPY
 		return invalid
 	end function
 
@@ -558,7 +567,6 @@ function ConvivaClientInstance(settings as object)
     self.log(videoNode, "ConvivaClient monitorYoSpaceSDK")
     convivaTask = self.getConvivaTask(videoNode)
     if convivaTask <> invalid and yoSpaceSession <> invalid
-      print "#####convivaTask NOT invalid and yoSpaceSession NOT invalid"
         self.convivaYoSpaceVideoNode = videoNode
         self.convivaYoSpaceSession = yoSpaceSession
         if yoSpaceSession.RegisterPlayer <> invalid
@@ -673,6 +681,10 @@ end function
 	' Utility function used by monitorRaf
 	self.rafAdBufferCallback = function(obj=Invalid as Dynamic, eventType = Invalid as Dynamic, ctx = Invalid as Dynamic)
     self = obj.self
+    ' Commenting as its causing lot of logs in HB, ignore warning during app launch time'
+    ' if(ctx <> invalid)
+    '   self.log(obj.videoNode, "rafAdBufferCallback")
+    ' end if
     if eventType = "BufferingStart" or eventType="ReBufferingStart"
       self.reportAdPlayerState(obj.videoNode, self.PLAYER_STATE.BUFFERING)
     else if eventType = "BufferingEnd" or eventType="ReBufferingEnd"
@@ -736,8 +748,6 @@ end function
   self.constructDaiMetadata = function (adData as object)
     adInfo = {}
     adInfo.SetModeCaseSensitive()
-    assetName = "No assetname detected"
-    adDuration = 0
     if adData.adid <> invalid
       adInfo.adid = adData.adid
       adInfo.adsystem = adData.adsystem
@@ -799,6 +809,7 @@ end function
     self = globalAA.ConvivaClient
     adMetadata = {}
     adMetadata.SetModeCaseSensitive()
+    adMetadata.podDuration = podInfo["adPod"].duration
     self.reportAdBreakEnded(self.convivaRafxVideoNode, self.AD_TYPE.SERVER_SIDE, adMetadata)
   end function
 
@@ -810,20 +821,39 @@ end function
     if adInfo.event = "Start" or adInfo.event = "Impression"
       adInfo = {}
       adInfo.SetModeCaseSensitive()
-
-      if adData.adtitle <> invalid
-        adInfo.assetName = adData.adtitle
-      else
-        adInfo.assetName = "No assetname detected"
+      if adData <> invalid
+        if adData.adtitle <> invalid
+          adInfo.assetName = adData.adtitle
+        else if adData.nativeAd <> invalid and adData.nativeAd.adTitle <> invalid
+          adInfo.assetName = adData.nativeAd.adTitle
+        end if
+        if adData.adid <> invalid and adData.adid <> ""
+          adInfo.adid = adData.adid
+        else if adData.nativeAd <> invalid and adData.nativeAd.adId <> invalid and adData.nativeAd.adId <> ""
+          adInfo.adid = adData.nativeAd.adId
+        else
+          adInfo.adid = "NA"
+        end if
+        if adData.adserver <> invalid and adData.adserver <> ""
+          adInfo.adsystem = adData.adserver
+        else if adData.nativeAd <> invalid and adData.nativeAd.adSystem <> invalid and adData.nativeAd.adSystem <> ""
+          adInfo.adsystem = adData.nativeAd.adSystem
+        else
+          adInfo.adsystem = "NA"
+        end if
       end if
-      adInfo.adid = adData.adid
-      adInfo.adsystem = adData.adserver
       adInfo.technology = "Server Side"
-      adInfo.creativeId = adData.creativeid
       adInfo.adManagerName = "RAFX SSAI Adapter"
       adInfo.adManagerVersion = self.convivaRafxAdapter["__version__"]
       adInfo.sessionStartEvent = "Impression"
-      adInfo.adStitcher = "Uplynk"
+      ' https://developer.roku.com/en-gb/docs/developer-program/advertising/ssai-adapters.md#1-loading-the-adapter
+      ' CE-7220 : Can extract the stitcher used from the name
+      stitcher = self.convivaRafxAdapter["__name__"]
+      if stitcher <> invalid and stitcher <> ""
+        adInfo.adStitcher = stitcher
+      else
+        adInfo.adStitcher = "NA"
+      end if
       adInfo.isSlate = "false"
       adInfo.mediaFileApiFramework = "NA"
       if m.rafxAdPod.rendersequence = "preroll"
@@ -833,10 +863,12 @@ end function
       else if m.rafxAdPod.rendersequence = "postroll"
         adInfo.position = "Post-roll"
       end if
-      if adData.streams.count() > 0
+      if adData <> invalid and adData.streams.count() > 0
         adInfo.streamUrl = adData.streams[0].url
       end if
-      adInfo.contentLength = Int(adData.duration)
+      if adData <> invalid and adData.duration > 0
+        adInfo.contentLength = Int(adData.duration)
+      end if
       adInfo.defaultReportingResource = ""
       adInfo.streamFormat = "hls"
       adInfo.moduleName = "RS"
@@ -850,7 +882,7 @@ end function
   self.OnYoSpaceAdBreakStart = function (breakInfo = invalid as Dynamic)
     globalAA = getGlobalAA()
     self = globalAA.ConvivaClient
-    
+
     adMetadata = {}
     adMetadata.SetModeCaseSensitive()
     'breakInfo.GetPosition() api introduced in v3 but api returns unknown always
@@ -960,7 +992,10 @@ end function
     adInfo.technology = "Server Side"
     ' adInfo.streamFormat = self.convivaYoSpaceSession.GetStreamType()
     adInfo.adManagerName = "YoSpace SDK"
-    ' adInfo.adManagerVersion = self.convivaYoSpaceSession.GetVersion()
+    if self.convivaYoSpaceSession.__version <> invalid
+      adInfo.adManagerVersion = self.convivaYoSpaceSession.__version
+    end if
+
     adInfo.adstitcher = "YoSpace CSM"
     adInfo.moduleName = "YS"
     self.reportAdStart(self.convivaYoSpaceVideoNode, adInfo)
@@ -992,6 +1027,30 @@ end function
       event = {}
       event.msg = msg
       event.type = "ConvivaLog"
+      convivaTask.callFunc("dispatchEvent", event)
+    end if
+  end function
+
+  self.setUserPreferenceForDataCollection = function(videoNode as object, prefs as object)
+    self=m
+    self.log(videoNode, "ConvivaClient setUserPreferenceForDataCollection")
+    convivaTask = self.getConvivaTask(videoNode)
+    if convivaTask <> invalid
+      event = {}
+      event.prefs = prefs
+      event.type = "ConvivaUserPreferenceForDataCollection"
+      convivaTask.callFunc("dispatchEvent", event)
+    end if
+  end function
+
+  self.setUserPreferenceForDataDeletion = function(videoNode as object, prefs as object)
+    self=m
+    self.log(videoNode, "ConvivaClient setUserPreferenceForDataDeletion")
+    convivaTask = self.getConvivaTask(videoNode)
+    if convivaTask <> invalid
+      event = {}
+      event.prefs = prefs
+      event.type = "ConvivaUserPreferenceForDataDeletion"
       convivaTask.callFunc("dispatchEvent", event)
     end if
   end function
