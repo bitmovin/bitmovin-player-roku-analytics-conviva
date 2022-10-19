@@ -86,7 +86,7 @@ sub startMonitor()
   'end if
 
 
-  while m.global.playingVideo = true
+  while true
     if m.LivePass <> invalid
       msg = ConvivaWait(0, m.port, invalid)
     else
@@ -273,6 +273,7 @@ sub startMonitor()
         end if
       end if
     end if
+    if m.global.playVideo = false then return
   end while
 end sub
 
