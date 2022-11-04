@@ -273,7 +273,7 @@ sub startMonitor()
         end if
       end if
     end if
-    if m.global.playVideo = false then return
+    if m.global.playingVideo = false then return
   end while
 end sub
 
