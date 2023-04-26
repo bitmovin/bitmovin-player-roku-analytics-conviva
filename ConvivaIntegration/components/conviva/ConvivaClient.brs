@@ -987,7 +987,7 @@ end function
           adInfo.isLive = true
       end if
     end if
-    adInfo.streamUrl = self.convivaYoSpaceSession.GetStreamUrl().ToString()
+    adInfo.streamUrl = self.convivaYoSpaceSession.getPlaybackurl().toStr()
     adInfo.mediaFileApiFramework = "NA"
     adInfo.technology = "Server Side"
     ' adInfo.streamFormat = self.convivaYoSpaceSession.GetStreamType()
