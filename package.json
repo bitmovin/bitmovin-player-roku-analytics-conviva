@@ -21,6 +21,7 @@
     }
   },
   "scripts": {
+    "lint": "eslint --ext .brs . && kacl lint",
     "clean:component": "rm -rf ./dist",
     "ensure_dist_folder": "mkdir -p ./dist",
     "serve:component": "npm run clean:component && npm run ensure_dist_folder && npm-run-all --parallel watch:component server",
@@ -34,7 +35,10 @@
   },
   "devDependencies": {
     "bestzip": "^2.1.7",
+    "eslint": "^5.6.0",
+    "eslint-plugin-roku": "^1.5.3",
     "http-server": "^14.1.1",
+    "kacl": "^1.1.1",
     "npm-run-all": "^4.1.5",
     "npm-watch": "^0.11.0"
   }
