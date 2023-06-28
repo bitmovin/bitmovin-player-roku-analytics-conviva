@@ -15,7 +15,9 @@
     },
     "build:example": {
       "patterns": [
-        "./ConvivaIntegration/components/**/*.*"
+        "./ConvivaIntegration/components/**/*.*",
+        "./demo/source/**/*",
+        "./demo/component/playerExample/**/*"
       ],
       "extensions": "brs,xml"
     }
