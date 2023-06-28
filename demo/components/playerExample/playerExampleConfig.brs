@@ -1,4 +1,4 @@
-function getExamplePlayerConfig()
+function getExamplePlayerConfig() as Object
   return {
     playback: {
       autoplay: true,
@@ -15,7 +15,7 @@ function getExamplePlayerConfig()
   }
 end function
 
-function getExamplePlayerConfig2()
+function getExamplePlayerConfig2() as Object
   return {
     playback: {
       autoplay: true,

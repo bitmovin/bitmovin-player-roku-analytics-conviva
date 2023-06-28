@@ -3,7 +3,8 @@ sub init()
 end sub
 
 sub setOverrides(newValue)
-  if m.playbackStarted
+  if m.playbackStarted then
+    ' eslint-disable-next-line roku/no-print
     print "[Conviva Analytics] Playback has started. Only some metadata attributes will be updated"
   end if
 
@@ -15,8 +16,8 @@ sub setPlaybackStarted(value)
 end sub
 
 function build()
-  if not m.playbackStarted
-    if m.contentMetadata.assetName = invalid
+  if not m.playbackStarted then
+    if m.contentMetadata.assetName = invalid then
       m.contentMetadata.assetName = getAssetName()
     end if
     
@@ -40,8 +41,8 @@ sub setAssetName(value)
   m.metadata.assetName = value
 end sub
 
-function getAssetName()
-  if m.metadataOverrides.assetName <> invalid
+function getAssetName() as String
+  if m.metadataOverrides.assetName <> invalid then
     return m.metadataOverrides.assetName
   else
     return m.metadata.assetName
@@ -52,8 +53,8 @@ sub setViewerId(value)
   m.metadata.viewerId = value
 end sub
 
-function getViewerId()
-  if m.metadataOverrides.viewerId <> invalid
+function getViewerId() as String
+  if m.metadataOverrides.viewerId <> invalid then
     return m.metadataOverrides.viewerId
   else
     return m.metadata.viewerId
@@ -64,8 +65,8 @@ sub setStreamType(value)
   m.metadata.isLive = value
 end sub
 
-function getStreamType()
-  if m.metadataOverrides.streamType <> invalid
+function getStreamType() as Boolean
+  if m.metadataOverrides.streamType <> invalid then
     return m.metadataOverrides.isLive
   else
     return m.metadata.isLive
@@ -76,8 +77,8 @@ sub setApplicationName(value)
   m.metadata.playerName = value
 end sub
 
-function getApplicationName()
-  if m.metadataOverrides.playerName <> invalid
+function getApplicationName() as String
+  if m.metadataOverrides.playerName <> invalid then
     return m.metadataOverrides.playerName
   else
     return m.metadata.playerName
@@ -91,12 +92,12 @@ sub setCustom(value)
 end sub
 
 function getCustom()
-  if m.metadataOverrides.customMetadata <> invalid and m.metadata.customMetadata <> invalid
+  if m.metadataOverrides.customMetadata <> invalid and m.metadata.customMetadata <> invalid then
     m.metadataOverrides.customMetadata.Append(m.metadata.customMetadata) ' Keep our internal ones
-    return m.metadataOverrides.customMetadata ' Append is modifying the original object
-  else if m.metadataOverrides.customMetadata <> invalid
+    return m.metadataOverrides.customMetadata ' Append is modifyresetMetaDataing the original object
+  else if m.metadataOverrides.customMetadata <> invalid then
     return m.metadataOverrides.customMetadata
-  else if m.metadata.customMetadata <> invalid
+  else if m.metadata.customMetadata <> invalid then
     return m.metadata.customMetadata
   end if
   return {}
@@ -106,8 +107,8 @@ sub setDuration(value)
   m.metadata.contentlength = value
 end sub
 
-function getDuration()
-  if m.metadataOverrides.contentlength <> invalid
+function getDuration() as Double
+  if m.metadataOverrides.contentlength <> invalid then
     return m.metadataOverrides.contentlength
   else
     return m.metadata.contentlength
@@ -119,7 +120,7 @@ sub setEncodedFrameRate(value)
 end sub
 
 function getEncodedFrameRate()
-  if m.metadataOverrides.encodedFramerate <> invalid
+  if m.metadataOverrides.encodedFramerate <> invalid then
     return m.metadataOverrides.encodedFramerate
   else
     return m.metadata.encodedFramerate
@@ -131,7 +132,7 @@ sub setDefaultResource(value)
 end sub
 
 function getDefaultResource()
-  if m.metadataOverrides.defaultReportingResource <> invalid
+  if m.metadataOverrides.defaultReportingResource <> invalid then
     return m.metadataOverrides.defaultReportingResource
   else
     return m.metadata.defaultReportingResource
@@ -142,8 +143,8 @@ sub setStreamUrl(value)
   m.metadata.streamUrl = value
 end sub
 
-function getStreamUrl()
-  if m.metadataOverrides.streamUrl <> invalid
+function getStreamUrl() as String
+  if m.metadataOverrides.streamUrl <> invalid then
     return m.metadataOverrides.streamUrl
   else
     return m.metadata.streamUrl

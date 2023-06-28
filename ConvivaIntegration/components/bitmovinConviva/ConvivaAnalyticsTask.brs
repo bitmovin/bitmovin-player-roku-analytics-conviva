@@ -21,12 +21,12 @@ sub initializeConviva()
     settings = {}
     settings.customerKey = apiKey
 
-    if m.top.config.gatewayUrl <> invalid
+    if m.top.config.gatewayUrl <> invalid then
         settings.gatewayUrl = m.top.config.gatewayUrl
     end if
     m.conviva = ConvivaClient(settings)
     m.adTrackingMode = m.top.config.adTrackingMode
-    if m.adTrackingMode > m.top.adTrackingModes.BASIC
+    if m.adTrackingMode > m.top.adTrackingModes.BASIC then
         m.adTracking = initAdTracking(m.top.player, m.conviva, m.video)
     end if
     registerEvents()
@@ -37,7 +37,7 @@ sub sendCustomApplicationEvent(eventName, attributes)
 end sub
 
 sub sendCustomPlaybackEvent(eventName, attributes)
-    if not isSessionActive()
+    if not isSessionActive() then
         debugLog("Cannot send playback event, no active monitoring session")
         return
     end if
@@ -47,14 +47,14 @@ end sub
 
 sub updateContentMetadata(metadataOverrides)
     m.contentMetadataBuilder.callFunc("setOverrides", metadataOverrides)
-    if isSessionActive()
+    if isSessionActive() then
         buildContentMetadata()
         updateSession()
     end if
 end sub
 
 sub monitorVideo(metadataOverrides)
-    if isSessionActive()
+    if isSessionActive() then
         ' Ending Session must be called earlier as possible than CreateConvivaSession because it takes time to clean up session
         ' Can't call createConvivaSession right after endSession()
         endSession()
@@ -65,9 +65,9 @@ end sub
 sub onStateChanged(state)
     state = m.top.player.playerState
     debugLog("[ConvivaAnalytics] state changed: " + state)
-    if state = "finished"
+    if state = "finished" then
         onPlaybackFinished()
-    else if state = "stopped"
+    else if state = "stopped" then
         endSession()
     end if
     ' Other states are handled by conviva
@@ -103,18 +103,18 @@ sub onSourceUnloaded()
 end sub
 
 sub onVideoError()
-    if isSessionActive()
+    if isSessionActive() then
         reportPlaybackDeficiency(m.top.player.error.message, true, true) ' close session on video error
     end if
 end sub
 
-function onAdBreakStarted()
+sub onAdBreakStarted()
     if m.adTrackingMode > m.top.adTrackingModes.BASIC then m.adTracking.onAdBreakStarted()
-end function
+end sub
 
-function onAdBreakFinished()
+sub onAdBreakFinished()
     if m.adTrackingMode > m.top.adTrackingModes.BASIC then m.adTracking.onAdBreakFinished()
-end function
+end sub
 
 sub onAdError()
     m.conviva.reportAdError(m.video, "adError")
@@ -148,12 +148,12 @@ sub reportPlaybackDeficiency(message, isFatal, closeSession = true)
 
     m.conviva.reportContentError(m.video, message, isFatal)
 
-    if closeSession
+    if closeSession then
         endSession()
     end if
 end sub
 
-function isSessionActive()
+function isSessionActive() as Boolean
     return m.cSession
 end function
 
@@ -166,24 +166,24 @@ sub buildContentMetadata()
     }
 
     config = m.top.player.callFunc("getConfig")
-    if config.playback <> invalid and config.playback.autoplay <> invalid
+    if config.playback <> invalid and config.playback.autoplay <> invalid then
         internalCustomTags.autoplay = ToString(config.playback.autoplay)
     end if
 
-    if config.adaptation <> invalid and config.adaptation.preload <> invalid
+    if config.adaptation <> invalid and config.adaptation.preload <> invalid then
         internalCustomTags.preload = ToString(config.adaptation.preload)
     end if
 
     m.contentMetadataBuilder.callFunc("setCustom", internalCustomTags)
 
     source = config.source
-    if source <> invalid
+    if source <> invalid then
         buildSourceRelatedMetadata(source)
     end if
 end sub
 
 sub buildSourceRelatedMetadata(source)
-    if source.title <> invalid
+    if source.title <> invalid then
         m.contentMetadataBuilder.callFunc("setAssetName", source.title)
     else
         m.contentMetadataBuilder.callFunc("setAssetName", "Untitled (no source.title set)")
@@ -214,7 +214,7 @@ sub registerPlayerEvents()
 
     ' In case of autoplay we miss the inital play callback.
     ' This does not affect VST.
-    if m.top.player[m.top.player.BitmovinFields.PLAY] = true
+    if m.top.player[m.top.player.BitmovinFields.PLAY] = true then
         onPlay()
     end if
 end sub
@@ -227,10 +227,11 @@ sub registerAdEvents()
 end sub
 
 sub debugLog(message as String)
+    ' eslint-disable-next-line roku/no-print
     if m.DEBUG then ? message
 end sub
 
-function getAd(mediaId)
+function getAd(mediaId) as Object
     adBreaks = m.top.player.callFunc(m.top.player.BitmovinFunctions.AD_LIST)
     for each adBreak in adBreaks
         for each ad in adBreak.ads

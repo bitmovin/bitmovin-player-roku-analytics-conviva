@@ -13,9 +13,10 @@ end sub
 
 ' The ComponentLibrary loadStatus field can equal "none", "ready", "loading" or "failed"
 sub onLoadStatusChanged()
+    ' eslint-disable-next-line roku/no-print
     ? "LOAD STATUS FOR BITMOVINPLAYER LIBRARY: "; m.bitmovinPlayerSDK.loadStatus
 
-    if (m.bitmovinPlayerSDK.loadStatus = "ready")
+    if m.bitmovinPlayerSDK.loadStatus = "ready" then
         ' Once the library is loaded and ready, we can use it to reference the BitmovinPlayer
         m.bitmovinPlayer = CreateObject("roSGNode", "BitmovinPlayerSDK:BitmovinPlayer")
         m.top.appendChild(m.bitmovinPlayer)
@@ -55,27 +56,31 @@ sub onLoadStatusChanged()
 end sub
 
 sub catchVideoError()
+    ' eslint-disable-next-line roku/no-print
     ? "ERROR: "; m.bitmovinPlayer.error.code.toStr() + ": " + m.bitmovinPlayer.error.message
 end sub
 
 sub catchVideoWarning()
+    ' eslint-disable-next-line roku/no-print
     ? "WARNING: "; m.bitmovinPlayer.warning.code.toStr() + ": " + m.bitmovinPlayer.warning.message
 end sub
 
 sub onSeek()
+    ' eslint-disable-next-line roku/no-print
     ? "SEEKING"
 end sub
 
 sub onSeeked()
+    ' eslint-disable-next-line roku/no-print
     ? "SEEKED: "; m.bitmovinPlayer.seeked
 end sub
 
 function onKeyEvent(key as string, press as boolean) as boolean
     handled = false
-    ? "##### key received!"
-    if press and (key = "down" or key = "up")
+    ? "##### key received!" ' eslint-disable-line roku/no-print
+    if press and (key = "down" or key = "up") then
         handled = true
-        if key = "up"
+        if key = "up" then
             m.playerConfig = getExamplePlayerConfig2()
         else
             m.playerConfig = getExamplePlayerConfig()
