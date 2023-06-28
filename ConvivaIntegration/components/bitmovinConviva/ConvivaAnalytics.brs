@@ -18,7 +18,8 @@ end sub
 
 sub setup(player, customerKey, convivaConfig)
     playerConfig = player.callFunc("getConfig")
-    if playerConfig <> invalid and playerConfig.source <> invalid
+    if playerConfig <> invalid and playerConfig.source <> invalid then
+        ' eslint-disable-next-line roku/no-print
         ? "[ConvivaAnalytics] Bitmovin Conviva integration must be instantiated before calling player.load() or player.setup()"
         return
     end if

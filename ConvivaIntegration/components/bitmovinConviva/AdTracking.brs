@@ -42,9 +42,9 @@ function initAdTracking(player, conviva, session = invalid)
   end sub
 
   this["_mapAdPosition"] = function(adBreak, duration)
-    if adBreak.scheduleTime = 0
+    if adBreak.scheduleTime = 0 then
       adType = "Pre-roll"
-    else if ((adBreak.scheduleTime + duration) >= m._player.findNode("MainVideo").duration)
+    else if ((adBreak.scheduleTime + duration) >= m._player.findNode("MainVideo").duration) then
       adType = "Post-roll"
     else
       adType = "Mid-roll"
